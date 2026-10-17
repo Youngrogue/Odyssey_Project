@@ -96,14 +96,19 @@ export async function drain(
         await db.query("COMMIT");
         break;
       }
-      const tokens = unseal<{ token: string; unsubscribeToken: string }>(
-        String(job.sealed_tokens),
-        config.tokenSecret,
-      );
+      const tokens = unseal<{
+        token: string;
+        unsubscribeToken: string;
+        inviteToken?: string;
+      }>(String(job.sealed_tokens), config.tokenSecret);
       const rendered = renderWaitlistEmail(job.kind as EmailKind, {
         ...tokens,
         origin: config.origin,
         contactEmail: config.contactEmail,
+        referralCode:
+          typeof subscriber.referral_code === "string"
+            ? subscriber.referral_code
+            : undefined,
       });
       const payload = job.sealed_request
         ? unseal<object>(String(job.sealed_request), config.tokenSecret)

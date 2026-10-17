@@ -1,0 +1,75 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { experimental_readRawConfig } from "wrangler";
+const target = process.argv[2];
+if (!["staging", "production"].includes(target))
+  throw Error("Choose staging or production");
+const account = process.env.CLOUDFLARE_ACCOUNT_ID;
+if (!/^[a-f0-9]{32}$/.test(account ?? ""))
+  throw Error("CLOUDFLARE_ACCOUNT_ID is required");
+const hyperdrive = process.env.HYPERDRIVE_ID;
+if (hyperdrive && !/^[a-f0-9]{32}$/.test(hyperdrive))
+  throw Error("Invalid HYPERDRIVE_ID");
+const enabled = process.env.WAITLIST_ENABLED === "true";
+if (enabled && !hyperdrive) throw Error("Collection requires Hyperdrive");
+if (
+  target === "production" &&
+  enabled &&
+  process.env.RELEASE_CHECKS_PASSED !== "true"
+)
+  throw Error("Public collection requires recorded release checks");
+if (
+  target === "staging" &&
+  enabled &&
+  process.env.STAGING_ACCESS_VERIFIED !== "true"
+)
+  throw Error(
+    "Protect staging with Cloudflare Access before enabling test signups",
+  );
+const name =
+  target === "production" ? "odyssey-landing" : "odyssey-landing-staging";
+const hostname =
+  target === "production"
+    ? "odyssey.soralives.xyz"
+    : "odyssey-staging.soralives.xyz";
+const { rawConfig: config } = experimental_readRawConfig({ config: "wrangler.jsonc" });
+config.name = name;
+config.account_id = account;
+config.main = "../.open-next/worker.js";
+config.assets.directory = "../.open-next/assets";
+config.services[0].service = name;
+config.routes = [{ pattern: hostname, custom_domain: true }];
+config.vars = {
+  ...config.vars,
+  DEPLOYMENT_ENV: target,
+  APP_ORIGIN: `https://${hostname}`,
+  WAITLIST_ENABLED: String(enabled),
+  SITE_INDEXING_ENABLED: String(
+    target === "production" &&
+      enabled &&
+      process.env.SITE_INDEXING_ENABLED === "true",
+  ),
+};
+if (hyperdrive) config.hyperdrive = [{ binding: "HYPERDRIVE", id: hyperdrive }];
+await mkdir(".cloudflare-build", { recursive: true });
+await writeFile(
+  ".cloudflare-build/landing.json",
+  JSON.stringify(config, null, 2) + "\n",
+);
+const { rawConfig: scheduler } = experimental_readRawConfig({ config: "cloudflare/scheduler.wrangler.jsonc" });
+scheduler.name = `${name}-scheduler`;
+scheduler.account_id = account;
+scheduler.main = "../cloudflare/scheduler.ts";
+scheduler.services[0].service = name;
+const scheduled = Boolean(hyperdrive && process.env.CRON_SECRET);
+scheduler.vars = {
+  SCHEDULER_ENABLED: String(scheduled),
+  MAIL_ENABLED: String(enabled),
+};
+scheduler.triggers.crons = scheduled ? ["*/5 * * * *", "0 3 * * *"] : [];
+await writeFile(
+  ".cloudflare-build/scheduler.json",
+  JSON.stringify(scheduler, null, 2) + "\n",
+);
+console.log(
+  `Prepared ${target}; collection ${enabled ? "enabled" : "closed"}; schedules ${scheduled ? "enabled" : "disabled"}.`,
+);

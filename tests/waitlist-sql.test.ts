@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { saveSignup, savePreferences } from "../src/lib/waitlist/store";
+import { waitlistNotice } from "../src/lib/waitlist/notice";
 
 async function database() {
   const db = new PGlite();
@@ -15,6 +16,12 @@ async function database() {
   await db.exec(
     readFileSync(
       resolve(process.cwd(), "db/003_waitlist_review_fixes.sql"),
+      "utf8",
+    ),
+  );
+  await db.exec(
+    readFileSync(
+      resolve(process.cwd(), "db/004_waitlist_referrals.sql"),
       "utf8",
     ),
   );
@@ -37,13 +44,14 @@ describe("waitlist SQL", () => {
     expect(
       (
         await db.query(
-          "SELECT email, consent_purpose, expires_at > NOW() AS retained FROM waitlist_signups",
+          "SELECT email, consent_purpose, notice_version, expires_at > NOW() AS retained FROM waitlist_signups",
         )
       ).rows,
     ).toEqual([
       expect.objectContaining({
         email: "person@example.com",
         consent_purpose: "waitlist_intake",
+        notice_version: waitlistNotice.version,
         retained: true,
       }),
     ]);
@@ -63,7 +71,11 @@ describe("waitlist SQL", () => {
   it("returns a same-shape dummy token for duplicate signup without changing the existing record", async () => {
     const db = await database();
     const first = await saveSignup(db, args);
+    await db.query("UPDATE waitlist_signups SET notice_version='2026-10-01'");
     const duplicate = await saveSignup(db, args);
+    expect(
+      (await db.query("SELECT notice_version FROM waitlist_signups")).rows,
+    ).toEqual([{ notice_version: "2026-10-01" }]);
     expect(duplicate.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(duplicate.token).not.toBe(first.token);
     await savePreferences(db, {

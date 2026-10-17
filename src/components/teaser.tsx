@@ -37,7 +37,7 @@ export function Teaser({ film = "loop" }: { film?: "loop" | "launch" }) {
             playsInline
             preload="metadata"
             tabIndex={0}
-            aria-label={`${title} — ${brand.name} concept film`}
+            aria-label={`${title} — ${brand.name} film`}
             poster={`${base}-poster.jpg`}
             width={launch ? 720 : 1280}
             height={launch ? 1280 : 720}
@@ -94,7 +94,7 @@ export function Teaser({ film = "loop" }: { film?: "loop" | "launch" }) {
             height={launch ? 1280 : 720}
             alt={
               launch
-                ? "Odyssey project. A little curiosity. A lot more life."
+                ? "Odyssey. A little curiosity. A lot more life."
                 : "Take a new turn. A yellow compass points towards something new."
             }
             loading="lazy"

@@ -1,7 +1,7 @@
 import { boundedText, result } from "../../../../lib/email/handlers";
 import { verifyWebhook } from "../../../../lib/email/security";
 import { applyEvent } from "../../../../lib/email/webhook";
-import { waitlistPool } from "../../../../lib/waitlist/db";
+import { connectWaitlist } from "../../../../lib/waitlist/db";
 export const runtime = "nodejs";
 export async function POST(request: Request) {
   const secret = process.env.RESEND_WEBHOOK_SECRET,
@@ -24,11 +24,11 @@ export async function POST(request: Request) {
           event.data.to.some((v: unknown) => typeof v !== "string")))
     )
       return result(400);
-    const db = await waitlistPool().connect();
+    const db = await connectWaitlist();
     try {
       await applyEvent(db, request.headers.get("svix-id")!, event, tokenSecret);
     } finally {
-      db.release();
+      await db.release();
     }
     return result();
   } catch {

@@ -9,3 +9,8 @@ playwright-report/
 
 .vercel/
 coverage/
+.open-next/
+.wrangler/
+.dev.vars*
+!.dev.vars.example
+.cloudflare-build/

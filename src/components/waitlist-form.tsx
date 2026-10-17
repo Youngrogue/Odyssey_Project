@@ -1,8 +1,7 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import Link from "next/link";
 import { Icon } from "./icons";
 
 const interests = [
@@ -15,9 +14,17 @@ const interests = [
   ["home", "Days at home"],
 ] as const;
 
-export function WaitlistForm({ enabled }: { enabled: boolean }) {
+export function WaitlistForm() {
+  const [availability, setAvailability] = useState<
+    "loading" | "open" | "closed" | "error"
+  >("loading");
+  const [availabilityAttempt, setAvailabilityAttempt] = useState(0);
+  const [referralCode, setReferralCode] = useState<string>();
+  const enabled = availability === "open";
   const id = useId();
   const [email, setEmail] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
+  const inviteRef = useRef<HTMLInputElement>(null);
   const [stage, setStage] = useState<"email" | "preferences" | "done">("email");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -26,6 +33,45 @@ export function WaitlistForm({ enabled }: { enabled: boolean }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const activeRequest = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refs = params.getAll("ref");
+    const code =
+      refs.length === 1 && /^[A-Za-z0-9_-]{16}$/.test(refs[0])
+        ? refs[0]
+        : undefined;
+    setReferralCode(code);
+    if (code) setInviteCode(code);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let current = true;
+    setAvailability("loading");
+    const timer = setTimeout(() => controller.abort(), 8000);
+    fetch("/api/waitlist/status", {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("status");
+        const body = await response.json();
+        if (typeof body.enabled !== "boolean") throw new Error("status");
+        if (current) setAvailability(body.enabled ? "open" : "closed");
+      })
+      .catch(() => {
+        if (current) setAvailability("error");
+      })
+      .finally(() => clearTimeout(timer));
+    return () => {
+      current = false;
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [availabilityAttempt]);
+
+  useEffect(() => () => activeRequest.current?.abort(), []);
 
   function changeStage(next: "preferences" | "done") {
     setError("");
@@ -44,6 +90,13 @@ export function WaitlistForm({ enabled }: { enabled: boolean }) {
       emailRef.current?.focus();
       return;
     }
+    if (inviteCode.trim() && !/^[A-Za-z0-9_-]{16}$/.test(inviteCode.trim())) {
+      setError(
+        "Check your invite code — it should have 16 letters, numbers, dashes or underscores. You can also leave it blank.",
+      );
+      inviteRef.current?.focus();
+      return;
+    }
     const form = new FormData(event.currentTarget);
     setBusy(true);
     const controller = new AbortController();
@@ -57,6 +110,7 @@ export function WaitlistForm({ enabled }: { enabled: boolean }) {
         body: JSON.stringify({
           email: email.trim(),
           website: form.get("website") || "",
+          ...(inviteCode.trim() ? { referralCode: inviteCode.trim() } : {}),
         }),
       });
       const result = await response.json();
@@ -127,7 +181,8 @@ export function WaitlistForm({ enabled }: { enabled: boolean }) {
         <p>
           Your request is saved. If this address can join, we’ll send a
           confirmation email. Confirm it to receive your welcome and launch
-          updates. Delivery may take a few minutes.
+          updates, plus your own invite link to share. Delivery may take a few
+          minutes.
         </p>
         <a className="text-link" href="#try-something">
           Find something you’d love to try <Icon name="arrow" />
@@ -255,6 +310,37 @@ export function WaitlistForm({ enabled }: { enabled: boolean }) {
           <Icon name="arrow" />
         </button>
       </div>
+      <details
+        className="invite-code-entry"
+        open={referralCode ? true : undefined}
+      >
+        <summary>
+          {referralCode ? "You’ve been invited" : "Have an invite code?"}
+        </summary>
+        <label htmlFor={`${id}-invite`}>
+          Invite code <span>(optional)</span>
+        </label>
+        <input
+          ref={inviteRef}
+          id={`${id}-invite`}
+          name="referralCode"
+          type="text"
+          maxLength={16}
+          autoComplete="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          value={inviteCode}
+          onChange={(event) => {
+            setInviteCode(event.target.value);
+            setError("");
+          }}
+          disabled={!enabled || busy}
+          aria-describedby={`${id}-invite-note ${id}-error`}
+        />
+        <p id={`${id}-invite-note`}>
+          Use a friend’s code or leave this blank. Your email stays private.
+        </p>
+      </details>
       <div className="honeypot" aria-hidden="true">
         <label htmlFor={`${id}-website`}>Website</label>
         <input
@@ -268,20 +354,40 @@ export function WaitlistForm({ enabled }: { enabled: boolean }) {
       <div id={`${id}-error`} role="alert" className="form-error">
         {error}
       </div>
-      <p id={`${id}-notice`} className="form-note">
+      <p id={`${id}-notice`} className="form-note" aria-live="polite">
         {enabled ? (
           <>
             By joining, you request a confirmation email, a welcome, project
             updates and a launch notification. Unsubscribe any time. Read our{" "}
-            <Link href="/privacy">privacy notice</Link>.
+            <a href="/privacy">privacy notice</a>.
           </>
         ) : (
           <>
-            <span className="preview-dot" /> Preview — signups aren’t open yet.{" "}
-            <Link href="/privacy">About your privacy</Link>.
+            <span className="preview-dot" />{" "}
+            {availability === "loading"
+              ? "Checking signup availability…"
+              : availability === "error"
+                ? "We couldn’t check signups. Please try again."
+                : "Signups are opening soon."}{" "}
+            <a href="/privacy">About your privacy</a>.
           </>
         )}
       </p>
+      {availability === "error" && (
+        <button
+          className="text-link"
+          type="button"
+          onClick={() => setAvailabilityAttempt((attempt) => attempt + 1)}
+        >
+          Try again <Icon name="arrow" />
+        </button>
+      )}
+      <noscript>
+        <p>
+          Enable JavaScript to join the waitlist. You can still explore the
+          ideas and read our privacy notice.
+        </p>
+      </noscript>
     </form>
   );
 }

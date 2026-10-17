@@ -1,6 +1,21 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 const preview = "http://127.0.0.1:43217";
+test("mobile discovery has keyboard controls and a complete View all alternative", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const controls = page.getByRole("group", { name: "Browse activity ideas" });
+  await expect(controls).toContainText("1 / 6");
+  const next = page.getByRole("button", { name: "Next activity idea" });
+  await next.focus();
+  await page.keyboard.press("Enter");
+  await expect(controls).toContainText("2 / 6");
+  await page.getByRole("button", { name: "View all 18 ideas" }).click();
+  await expect(page.locator(".idea-card")).toHaveCount(18);
+  await expect(controls).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
 test("ideas filter, detail dialog, save, custom recurrence, completion, persistence and removal", async ({
   page,
 }) => {
@@ -15,7 +30,7 @@ test("ideas filter, detail dialog, save, custom recurrence, completion, persiste
     page.getByRole("dialog", { name: "A small challenge. A cosy evening." }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Add to my preview list", exact: true })
+    .getByRole("button", { name: "Add to my Bucket list", exact: true })
     .click();
   await expect(explore).toBeFocused();
   await expect(page.locator(".bucket-items li")).toHaveCount(1);
@@ -43,7 +58,7 @@ test("ideas filter, detail dialog, save, custom recurrence, completion, persiste
     "my-odyssey-bucket-list.txt",
   );
   await page
-    .getByRole("button", { name: "Clear preview", exact: true })
+    .getByRole("button", { name: "Clear my list", exact: true })
     .click();
   await page.getByRole("button", { name: "Keep it", exact: true }).click();
   await expect(page.locator(".bucket-progress")).toContainText("2 ideas");
@@ -54,36 +69,23 @@ test("ideas filter, detail dialog, save, custom recurrence, completion, persiste
     "0 checked off · 1 ideas",
   );
 });
-test("unconfigured signup demo shows real templates without collecting or sending", async ({
-  page,
-}) => {
+test("closed signups cannot collect or submit email", async ({ page }) => {
   const api: string[] = [];
   page.on("request", (r) => {
     if (r.url().includes("/api/")) api.push(r.url());
   });
   await page.goto(preview);
-  await page.getByRole("button", { name: "Try the waitlist preview" }).click();
-  await expect(page.getByLabel("Sample email address")).toHaveValue(
-    "reader@example.com",
-  );
-  await page
-    .getByRole("button", { name: "Preview confirmation email" })
-    .click();
   await expect(
-    page.frameLocator("iframe").getByRole("heading", { level: 1 }),
-  ).toContainText("confirm your email");
-  await page
-    .getByRole("button", { name: "Simulate confirming my email" })
-    .click();
+    page.getByText("Signups are opening soon.", { exact: false }),
+  ).toBeVisible();
   await expect(
-    page.frameLocator("iframe").getByRole("heading", { level: 1 }),
-  ).toContainText("You're on the list");
-  await expect(page.frameLocator("iframe").locator("a[href]")).toHaveCount(0);
-  await page
-    .getByRole("button", { name: "Explore a few ideas", exact: true })
-    .click();
-  await expect(page.getByRole("dialog")).not.toBeVisible();
-  expect(api).toEqual([]);
+    page.getByLabel("Your email address", { exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Join the waitlist", exact: true }),
+  ).toBeDisabled();
+  await expect(page.locator("iframe")).toHaveCount(0);
+  expect(api).toEqual([`${preview}/api/waitlist/status`]);
 });
 test("partner introduction is local, downloadable and never pretends to send", async ({
   page,
@@ -99,10 +101,8 @@ test("partner introduction is local, downloadable and never pretends to send", a
     page.getByLabel("Prepared partnership introduction"),
   ).toContainText("A sample book club");
   await expect(
-    page.getByText("The project’s partnership inbox isn’t connected yet.", {
-      exact: false,
-    }),
-  ).toBeVisible();
+    page.getByRole("link", { name: "Open email draft" }),
+  ).toHaveAttribute("href", /^mailto:odyssey@soralives\.xyz\?/);
   const download = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Download draft", exact: true })
@@ -167,20 +167,18 @@ test("storage failure is honest and list still works for the visit", async ({
   ).toBeVisible();
   await expect(page.locator(".bucket-items li")).toHaveCount(1);
 });
-test("community research and opened activity detail remain accessible on mobile", async ({
+test("isometric community selection and opened activity detail remain accessible on mobile", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page
-    .getByRole("button", { name: "Explore community examples" })
-    .nth(1)
+  const games = page.locator(".community-card").nth(1);
+  await games
+    .getByRole("button", { name: "Find your people", exact: true })
     .click();
-  await expect(
-    page.getByText("TSL Mondays and Gameland Lagos are on our research list.", {
-      exact: false,
-    }),
-  ).toBeVisible();
+  await expect(games.locator(".community-leads")).toBeVisible();
+  await expect(page.locator("#community-paths-0")).not.toBeVisible();
+  await expect(games.getByText("Board games", { exact: true })).toBeVisible();
   await page
     .getByRole("button", { name: "Explore idea: Find your rhythm. Try salsa." })
     .click();
@@ -220,7 +218,7 @@ test("preview lists stay consistent across two tabs, including clear and simulta
   await expect(page.locator(".bucket-items li")).toHaveCount(3);
   await expect(other.locator(".bucket-items li")).toHaveCount(3);
   await page
-    .getByRole("button", { name: "Clear preview", exact: true })
+    .getByRole("button", { name: "Clear my list", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Yes, clear it", exact: true })
@@ -275,6 +273,8 @@ test("email action pages are accessible and opening them does not submit", async
     "/waitlist/confirm?token=" + "a".repeat(43),
     "/waitlist/confirm?resent=1",
     "/waitlist/unsubscribe?token=" + "b".repeat(43),
+    "/waitlist/invite?token=" + "c".repeat(43),
+    "/waitlist/invite",
   ]) {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

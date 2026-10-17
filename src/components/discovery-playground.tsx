@@ -17,11 +17,15 @@ import {
 } from "@/lib/preview/bucket";
 import { Icon } from "./icons";
 import { IdeaIllustration } from "./idea-illustration";
+import { RewardsPreview } from "./rewards-preview";
 
 export function DiscoveryPlayground() {
   const [group, setGroup] = useState<string>("all");
   const [expanded, setExpanded] = useState(false);
+  const [activeIdea, setActiveIdea] = useState(0);
+  const ideaTrack = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Idea | null>(null);
+  const [rewardIdeaId, setRewardIdeaId] = useState("cuisine");
   const [items, setItems] = useState<BucketItem[]>([]);
   const [storageOkay, setStorageOkay] = useState(true);
   const [message, setMessage] = useState("");
@@ -109,13 +113,32 @@ export function DiscoveryPlayground() {
   const filtered =
     group === "all" ? ideas : ideas.filter((i) => i.group === group);
   const shown = expanded ? filtered : filtered.slice(0, 6);
+  useEffect(() => {
+    setActiveIdea(0);
+    ideaTrack.current?.scrollTo({ left: 0, behavior: "instant" });
+  }, [group, expanded]);
+  function moveIdea(direction: number) {
+    const track = ideaTrack.current;
+    if (!track) return;
+    const cards = Array.from(track.children) as HTMLElement[];
+    const next = Math.max(
+      0,
+      Math.min(cards.length - 1, activeIdea + direction),
+    );
+    track.scrollTo({
+      left: cards[next].offsetLeft - cards[0].offsetLeft,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+    });
+  }
   function add(idea: Idea) {
     changeItems((previous) => {
       if (previous.some((i) => i.id === idea.id)) {
-        setMessage("That idea is already in your preview list.");
+        setMessage("That idea is already in your Bucket list.");
         return previous;
       }
-      setMessage(`Added “${idea.title}” to your preview list.`);
+      setMessage(`Added “${idea.title}” to your Bucket list.`);
       return [
         ...previous,
         {
@@ -146,7 +169,7 @@ export function DiscoveryPlayground() {
       }
       setCustomTitle("");
       setFormError("");
-      setMessage(`Added “${title}” to your preview list.`);
+      setMessage(`Added “${title}” to your Bucket list.`);
       return [
         ...previous,
         { id, title, group: customGroup, cadence, completedPeriods: [] },
@@ -174,7 +197,7 @@ export function DiscoveryPlayground() {
     );
   }
   function download() {
-    const text = `MY ODYSSEY BUCKET LIST\nExported from the local landing-page preview.\n\n${items.map((i) => `${done(i) ? "[x]" : "[ ]"} ${i.title}\n    ${cadenceLabels[i.cadence]} · ${groups.find((g) => g.id === i.group)?.label}`).join("\n\n")}\n`;
+    const text = `MY ODYSSEY BUCKET LIST\nSaved from Odyssey.\n\n${items.map((i) => `${done(i) ? "[x]" : "[ ]"} ${i.title}\n    ${cadenceLabels[i.cadence]} · ${groups.find((g) => g.id === i.group)?.label}`).join("\n\n")}\n`;
     const href = URL.createObjectURL(
       new Blob([text], { type: "text/plain;charset=utf-8" }),
     );
@@ -183,7 +206,7 @@ export function DiscoveryPlayground() {
     a.download = "my-odyssey-bucket-list.txt";
     a.click();
     URL.revokeObjectURL(href);
-    setMessage("Your preview list has been downloaded.");
+    setMessage("Your Bucket list has been downloaded.");
   }
   function close() {
     dialog.current?.close();
@@ -230,7 +253,69 @@ export function DiscoveryPlayground() {
             </button>
           ))}
         </div>
-        <div className="idea-grid">
+        {!expanded && (
+          <div
+            className="idea-carousel-controls"
+            role="group"
+            aria-label="Browse activity ideas"
+          >
+            <div>
+              <button
+                type="button"
+                aria-label="Previous activity idea"
+                aria-controls="activity-ideas"
+                disabled={activeIdea === 0}
+                onClick={() => moveIdea(-1)}
+              >
+                ←
+              </button>
+              <span aria-live="polite">
+                {Math.min(activeIdea + 1, shown.length)} / {shown.length}
+              </span>
+              <button
+                type="button"
+                aria-label="Next activity idea"
+                aria-controls="activity-ideas"
+                disabled={activeIdea >= shown.length - 1}
+                onClick={() => moveIdea(1)}
+              >
+                →
+              </button>
+            </div>
+            <button
+              className="text-link"
+              type="button"
+              onClick={() => setExpanded(true)}
+            >
+              View all {filtered.length} ideas
+            </button>
+          </div>
+        )}
+        <div
+          id="activity-ideas"
+          className={`idea-grid${expanded ? " is-expanded" : ""}`}
+          ref={ideaTrack}
+          onScroll={() => {
+            const track = ideaTrack.current;
+            if (!track || !track.children.length) return;
+            const cards = Array.from(track.children) as HTMLElement[];
+            const closest = cards.reduce(
+              (best, card, index) =>
+                Math.abs(
+                  card.offsetLeft - cards[0].offsetLeft - track.scrollLeft,
+                ) <
+                Math.abs(
+                  cards[best].offsetLeft -
+                    cards[0].offsetLeft -
+                    track.scrollLeft,
+                )
+                  ? index
+                  : best,
+              0,
+            );
+            setActiveIdea(closest);
+          }}
+        >
           {shown.map((idea) => {
             const saved = items.some((i) => i.id === idea.id);
             return (
@@ -293,7 +378,7 @@ export function DiscoveryPlayground() {
           )}
         </div>
         <a className="bucket-jump" href="#your-bucket-list">
-          <Icon name="list" /> Your preview list <span>{items.length}</span>
+          <Icon name="list" /> Your Bucket list <span>{items.length}</span>
           <Icon name="arrow" />
         </a>
       </section>
@@ -320,9 +405,8 @@ export function DiscoveryPlayground() {
             <div className="preview-explainer">
               <Icon name="spark" />
               <p>
-                <strong>Try it right here.</strong> This working preview stays
-                in this browser. It doesn’t create an account or award XP. You
-                can download or clear it any time.
+                <strong>Your ideas, right here.</strong> Saved on this device.
+                Download a copy to keep, or clear your list whenever you like.
               </p>
             </div>
             <div className="future-rewards">
@@ -335,13 +419,16 @@ export function DiscoveryPlayground() {
                   edition. Food, sports, making, games — it’s about what you
                   try.
                 </p>
+                <a className="text-link" href="#your-progress">
+                  Explore ranks & leaderboards <Icon name="arrow" />
+                </a>
               </div>
             </div>
           </div>
           <div className="bucket-board">
             <div className="bucket-board-header">
               <div>
-                <span className="eyebrow">YOUR INTERACTIVE PREVIEW</span>
+                <span className="eyebrow">YOUR BUCKET LIST</span>
                 <h3>My next little adventures</h3>
               </div>
               <span className="bucket-sticker">
@@ -355,7 +442,7 @@ export function DiscoveryPlayground() {
               <progress
                 max={Math.max(1, items.length)}
                 value={completed}
-                aria-label="Preview list completion"
+                aria-label="Bucket list completion"
               />
             </div>
             <div
@@ -499,7 +586,7 @@ export function DiscoveryPlayground() {
                   disabled={!items.length}
                   onClick={() => setConfirmClear(true)}
                 >
-                  Clear preview
+                  Clear my list
                 </button>
               ) : (
                 <span className="clear-confirm">
@@ -508,7 +595,7 @@ export function DiscoveryPlayground() {
                     onClick={() => {
                       changeItems(() => []);
                       setConfirmClear(false);
-                      setMessage("Your preview list has been cleared.");
+                      setMessage("Your Bucket list has been cleared.");
                     }}
                   >
                     Yes, clear it
@@ -528,6 +615,10 @@ export function DiscoveryPlayground() {
           </div>
         </div>
       </section>
+      <RewardsPreview
+        activeIdeaId={rewardIdeaId}
+        onIdeaChange={setRewardIdeaId}
+      />
       <p className="sr-only" role="status" aria-live="polite">
         {message}
       </p>
@@ -574,13 +665,25 @@ export function DiscoveryPlayground() {
               >
                 {items.some((i) => i.id === selected.id)
                   ? "Already on your list"
-                  : "Add to my preview list"}
+                  : "Add to my Bucket list"}
                 <Icon name="check" />
               </button>
               <p className="dialog-note">
-                Activity preview. Current venues, prices and event dates will be
-                listed as the catalogue develops.
+                Make room for something new. Save this idea, then take the first
+                step when it feels right for you.
               </p>
+              <button
+                type="button"
+                className="text-link"
+                onClick={() => {
+                  setRewardIdeaId(selected.id);
+                  opener.current = document.getElementById("rewards-title");
+                  close();
+                  opener.current?.scrollIntoView({ block: "start" });
+                }}
+              >
+                See trophies & leaderboards <Icon name="arrow" />
+              </button>
             </div>
           </>
         )}

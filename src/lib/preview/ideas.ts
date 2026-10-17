@@ -56,7 +56,7 @@ export const ideas: Idea[] = [
     description:
       "A new cuisine can be an adventure of its own. Cook, order in or discover a restaurant.",
     firstStep:
-      "Choose an unfamiliar cuisine, then find a dish and learn a little about it. Any eligible country can be part of your food journey.",
+      "Choose an unfamiliar cuisine, then find a dish and learn a little about it. Taste your way around the world, one country at a time.",
     symbol: "food",
     tone: "yellow",
   },

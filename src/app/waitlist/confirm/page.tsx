@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Confirm your email · Odyssey project",
+  title: "Confirm your email · Odyssey",
   referrer: "no-referrer",
   robots: { index: false, follow: false },
 };
@@ -20,7 +20,7 @@ export default async function Confirm({
     /^[A-Za-z0-9_-]{43}$/.test(params.token);
   return (
     <main className="privacy-page">
-      <a href="/">Odyssey project</a>
+      <a href="/">Odyssey</a>
       <h1>Confirm your email</h1>
       {params.error && (
         <p role="alert">
@@ -40,7 +40,9 @@ export default async function Confirm({
       {params.done ? (
         <p>
           Request processed. If your link was valid and current, your email is
-          now confirmed. No app account has been created.
+          now confirmed. Your welcome email contains your private invitation
+          page and a public link you can share with friends. No app account has
+          been created.
         </p>
       ) : (
         <>

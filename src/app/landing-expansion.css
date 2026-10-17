@@ -1470,3 +1470,14 @@ textarea:focus-visible {
     height: 32px;
   }
 }
+
+/* Manual mobile discovery: the full checklist and form stay directly accessible. */
+.idea-carousel-controls { display: none; }
+@media (max-width: 640px) {
+  .idea-carousel-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 24px 0 12px; }
+  .idea-carousel-controls > div { display: flex; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; }
+  .idea-carousel-controls > div button { width: 48px; height: 48px; border-radius: 50%; border: 1px solid #cfd4de; background: #fff; color: #10172c; font-size: 24px; cursor: pointer; }
+  .idea-carousel-controls > div button:disabled { opacity: .4; cursor: default; }
+  .idea-grid:not(.is-expanded) { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: 4px 4px 18px; margin: 0 -4px; }
+  .idea-grid:not(.is-expanded) .idea-card { flex: 0 0 90%; min-width: 0; scroll-snap-align: start; }
+}

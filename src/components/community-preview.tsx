@@ -1,40 +1,51 @@
 "use client";
 import { useState } from "react";
 import { Icon } from "./icons";
+import { CommunityIsland } from "./community-islands";
+
 const communities = [
   {
     title: "A dance floor. A new circle.",
     kind: "Dance & music",
     tone: "violet",
+    scene: "dance" as const,
     description:
       "Salsa, Konpa, live music, house nights. Find people who love the same rhythm.",
-    leads:
-      "Body Language, Inner Circle, and Free Style Friday with NW are among the community leads we’re exploring. Each has its own scene; dance classes, gospel socials and raves stay distinct.",
-    quest: "Try a dance session",
+    detail:
+      "Start with a beginner class, bring a friend to a social, or make a night of discovering a new sound. You don’t need to know the steps to take the first one.",
+    interests: ["Salsa & Konpa", "Dance socials", "Live music", "House & EDM"],
+    quest: "Find your next activity",
   },
   {
     title: "Make room at the games table.",
     kind: "Games & hangouts",
     tone: "yellow",
+    scene: "games" as const,
     description:
       "Karaoke, board games and the sort of evening that starts with “one more round.”",
-    leads:
-      "TSL Mondays and Gameland Lagos are on our research list. We’ll link their activities to confirmed organisers, venues and event dates as details are checked.",
-    quest: "Find a games night",
+    detail:
+      "Find your board-game people, brave the karaoke mic, or turn a quiet catch-up into a regular thing. A friendly table is a good place to begin.",
+    interests: ["Board games", "Karaoke", "Chess", "Casual hangouts"],
+    quest: "Choose something fun",
   },
   {
     title: "Come for the shared interest.",
     kind: "Books & little adventures",
     tone: "coral",
+    scene: "books" as const,
     description:
       "A book discussion, a picnic, a walk. Good company can begin with something simple.",
-    leads:
-      "Northstarlibrary and The Good Co. Ng are examples from our community research. Their programmes and next events will be checked before appearing in the calendar.",
-    quest: "Meet through an interest",
+    detail:
+      "Swap a recommendation, join a reading circle, or take the conversation outdoors. There’s room for the quieter kinds of adventure too.",
+    interests: ["Book clubs", "Reading circles", "Picnics", "City walks"],
+    quest: "Explore your interests",
   },
 ];
+
 export function CommunityPreview() {
-  const [open, setOpen] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(0);
+  const toggle = (index: number) =>
+    setOpen((current) => (current === index ? null : index));
   return (
     <section
       id="find-your-people"
@@ -59,41 +70,14 @@ export function CommunityPreview() {
       <div className="community-grid">
         {communities.map((c, i) => (
           <article key={c.title} className={`community-card tone-${c.tone}`}>
-            <div className="community-faces" aria-hidden="true">
-              <span>
-                <svg viewBox="0 0 60 60">
-                  <path
-                    d="M11 36c0-18 12-24 21-22 14 1 18 14 14 24-3 10-29 14-35-2"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M22 32v3m13-3v3m-12 6q6 6 13-2"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-              <span>
-                <svg viewBox="0 0 60 60">
-                  <path
-                    d="m14 43-3-23 16-9 16 6 7 20-16 13Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M22 27v3m12-5v3m-10 9q7 5 12-3"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-              <span>
-                <Icon name="plus" />
-              </span>
-            </div>
+            <CommunityIsland
+              scene={c.scene}
+              active={open === i}
+              label={c.kind}
+              number={i + 1}
+              controls={`community-paths-${i}`}
+              onToggle={() => toggle(i)}
+            />
             <p className="eyebrow">{c.kind}</p>
             <h3>{c.title}</h3>
             <p>{c.description}</p>
@@ -101,34 +85,48 @@ export function CommunityPreview() {
               type="button"
               className="text-link"
               aria-expanded={open === i}
-              aria-controls={`community-leads-${i}`}
-              onClick={() => setOpen(open === i ? null : i)}
+              aria-controls={`community-paths-${i}`}
+              onClick={() => toggle(i)}
             >
-              {open === i
-                ? "Hide community examples"
-                : "Explore community examples"}
-              <Icon name="plus" />
+              {open === i ? "Close this circle" : "Find your people"}
+              <Icon name={open === i ? "minus" : "plus"} />
             </button>
             <div
               hidden={open !== i}
-              id={`community-leads-${i}`}
+              id={`community-paths-${i}`}
               className="community-leads"
             >
-              <p>{c.leads}</p>
-              <strong>
-                Research examples, not announced partners or live events.
-              </strong>
+              <p>{c.detail}</p>
+              <ul
+                className="community-interests"
+                aria-label={`${c.kind} interests`}
+              >
+                {c.interests.map((interest) => (
+                  <li key={interest}>{interest}</li>
+                ))}
+              </ul>
               <a href="#try-something">
-                {c.quest} <Icon name="arrow" />
+                {c.quest}
+                <Icon name="arrow" />
               </a>
             </div>
           </article>
         ))}
       </div>
-      <p className="community-footnote">
-        Prefer your own company? Solo, home and online activities belong here
-        too.
-      </p>
+      <div className="community-bottom-line">
+        <p className="community-footnote">
+          Prefer your own company? Solo, home and online activities belong here
+          too.
+        </p>
+        <a
+          className="iso-glow-credit"
+          href="https://iso-glow.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Made with ISO-GLOW ↗
+        </a>
+      </div>
     </section>
   );
 }

@@ -1,0 +1,12 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "odyssey-scheduler-local",
+  "main": "scheduler.ts",
+  "compatibility_date": "2026-10-17",
+  "workers_dev": false,
+  "preview_urls": false,
+  "services": [{ "binding": "LANDING", "service": "odyssey-landing-local" }],
+  "vars": { "SCHEDULER_ENABLED": "false" },
+  "triggers": { "crons": [] },
+  "observability": { "enabled": false },
+}

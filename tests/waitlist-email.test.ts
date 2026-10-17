@@ -31,6 +31,7 @@ async function setup() {
     "001_waitlist.sql",
     "002_waitlist_email.sql",
     "003_waitlist_review_fixes.sql",
+    "004_waitlist_referrals.sql",
   ])
     await db.exec(readFileSync(`db/${f}`, "utf8"));
   await saveSignup(db, input);
@@ -52,6 +53,28 @@ async function confirm(db: PGlite) {
 const accepted = () =>
   vi.fn<typeof fetch>().mockResolvedValue(Response.json({ id: "provider-1" }));
 describe("durable email lifecycle", () => {
+  it("cleanup resumes bounded batches without deleting live signups or suppressions", async () => {
+    const db = await setup();
+    await saveSignup(db, { ...input, email: "expired@example.com" });
+    await saveSignup(db, { ...input, email: "live@example.com" });
+    await db.query(
+      "UPDATE waitlist_signups SET expires_at=now()-interval '1 day' WHERE email<>'live@example.com'",
+    );
+    await db.query(
+      "INSERT INTO waitlist_suppressions(email_hash) VALUES('retained-test-hash')",
+    );
+    expect(await purge(db, 1)).toBe(true);
+    expect(await purge(db, 1)).toBe(false);
+    expect((await db.query("SELECT email FROM waitlist_signups")).rows).toEqual(
+      [{ email: "live@example.com" }],
+    );
+    expect(
+      (await db.query("SELECT count(*)::int AS n FROM waitlist_suppressions"))
+        .rows[0],
+    ).toEqual({ n: 1 });
+    await expect(purge(db, 501)).rejects.toThrow("Invalid cleanup batch size");
+    await db.close();
+  });
   it("native unavailable action returns a safe styled redirect and resend copy does not imply confirmation", async () => {
     const prior = process.env.WAITLIST_ENABLED;
     process.env.WAITLIST_ENABLED = "false";

@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "odyssey-landing-local",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-17",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "odyssey-landing-local" },
+  ],
+  "vars": {
+    "NEXTJS_ENV": "production",
+    "DEPLOYMENT_ENV": "development",
+    "APP_ORIGIN": "http://127.0.0.1:43219",
+    "WAITLIST_ENABLED": "false",
+    "SITE_INDEXING_ENABLED": "false",
+    "PRIVACY_OPERATOR_NAME": "Tobi Arogunmati",
+    "PRIVACY_CONTACT_EMAIL": "odyssey@soralives.xyz",
+    "WAITLIST_RETENTION_DAYS": "180",
+    "WAITLIST_PENDING_RETENTION_DAYS": "7",
+    "WAITLIST_EMAIL_FROM": "odyssey@soralives.xyz",
+    "WAITLIST_DAILY_SEND_BUDGET": "80",
+    "WAITLIST_TRUSTED_IP_HEADER": "cf-connecting-ip",
+  },
+  "observability": { "enabled": false },
+  "workers_dev": false,
+  "preview_urls": false,
+}

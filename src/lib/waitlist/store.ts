@@ -39,7 +39,13 @@ export async function charge(
 
 export async function saveSignup(
   db: Queryable,
-  input: { email: string; ip: string; secret: string; retentionDays: number },
+  input: {
+    email: string;
+    ip: string;
+    secret: string;
+    retentionDays: number;
+    referralCode?: string;
+  },
 ): Promise<{ token: string }> {
   const token = randomBytes(32).toString("base64url");
   await db.query("BEGIN");

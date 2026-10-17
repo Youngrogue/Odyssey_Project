@@ -10,7 +10,7 @@ export function PartnerInvitation({ contact }: { contact: string | null }) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     setDraft(
-      `Hello Odyssey project,\n\nI’d like to explore a collaboration.\n\nName: ${String(data.get("name")).trim()}\nOrganisation / community: ${String(data.get("organisation")).trim()}\nPublic link: ${String(data.get("link")).trim() || "Not supplied"}\nInterested in: ${data.get("kind")}\n\n${String(data.get("idea")).trim()}\n\nPlease reply to this email to continue the conversation.`,
+      `Hello Odyssey,\n\nI’d like to explore a collaboration.\n\nName: ${String(data.get("name")).trim()}\nOrganisation / community: ${String(data.get("organisation")).trim()}\nPublic link: ${String(data.get("link")).trim() || "Not supplied"}\nInterested in: ${data.get("kind")}\n\n${String(data.get("idea")).trim()}\n\nPlease reply to this email to continue the conversation.`,
     );
     setCopied(false);
     setCopyFailed(false);
@@ -60,8 +60,7 @@ export function PartnerInvitation({ contact }: { contact: string | null }) {
             </li>
           </ul>
           <p className="partner-honesty">
-            We’re inviting conversations. No partner relationships are being
-            announced here.
+            Let’s build something people will want to be part of.
           </p>
         </div>
         <div className="partner-intake">
@@ -141,7 +140,7 @@ export function PartnerInvitation({ contact }: { contact: string | null }) {
                 {contact && (
                   <a
                     className="button button-yellow"
-                    href={`mailto:${contact}?subject=${encodeURIComponent("A collaboration idea for Odyssey project")}&body=${encodeURIComponent(draft)}`}
+                    href={`mailto:${contact}?subject=${encodeURIComponent("A collaboration idea for Odyssey")}&body=${encodeURIComponent(draft)}`}
                   >
                     Open email draft <Icon name="mail" />
                   </a>
@@ -170,7 +169,7 @@ export function PartnerInvitation({ contact }: { contact: string | null }) {
                   ? "Copy wasn’t available. Select the text above or download your draft."
                   : contact
                     ? "Your email app will open. Review it before sending."
-                    : "The project’s partnership inbox isn’t connected yet. Keep this draft for when enquiries open."}
+                    : "Partner enquiries are opening soon. Keep this introduction ready to send."}
               </p>
             </div>
           )}

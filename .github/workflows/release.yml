@@ -1,0 +1,117 @@
+name: Check and release Odyssey
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment environment
+        type: choice
+        options: [staging, production]
+        default: staging
+      open_waitlist:
+        description: Enable only after recorded provider, free-tier and security checks
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: odyssey-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: local-ci-only
+          POSTGRES_DB: odyssey_tests
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      WAITLIST_TEST_POSTGRES_URL: postgresql://postgres:local-ci-only@127.0.0.1:5432/odyssey_tests
+      DEPLOYMENT_ENV: staging
+      SITE_INDEXING_ENABLED: "false"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck && pnpm test
+      - name: Verify migrations and repeat application
+        run: |
+          pnpm db:migrate
+          pnpm db:migrate
+        env:
+          DATABASE_URL: postgresql://postgres:local-ci-only@127.0.0.1:5432/odyssey_tests
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+        env:
+          PLAYWRIGHT_USE_CHROMIUM: "true"
+      - run: pnpm cf:build
+      - run: pnpm test:worker
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-evidence
+          path: test-results/
+          retention-days: 7
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'staging' }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      HYPERDRIVE_ID: ${{ vars.HYPERDRIVE_ID }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      RESEND_WEBHOOK_SECRET: ${{ secrets.RESEND_WEBHOOK_SECRET }}
+      WAITLIST_TOKEN_SECRET: ${{ secrets.WAITLIST_TOKEN_SECRET }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      RELEASE_CHECKS_PASSED: ${{ vars.RELEASE_CHECKS_PASSED }}
+      STAGING_ACCESS_VERIFIED: ${{ vars.STAGING_ACCESS_VERIFIED }}
+      WAITLIST_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.open_waitlist && 'true' || 'false' }}
+      SITE_INDEXING_ENABLED: ${{ vars.SITE_INDEXING_ENABLED || 'false' }}
+      TARGET: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'staging' }}
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/cloudflare-config.mjs "$TARGET"
+      - name: Apply additive database migrations
+        if: env.DATABASE_URL != ''
+        run: pnpm db:migrate
+      - name: Build without runtime secrets
+        run: node scripts/cloudflare-build.mjs "$TARGET"
+      - name: Deploy landing
+        run: pnpm exec opennextjs-cloudflare deploy --config .cloudflare-build/landing.json
+      - run: node scripts/cloudflare-secrets.mjs landing
+      - name: Deploy scheduler
+        run: pnpm exec wrangler deploy --config .cloudflare-build/scheduler.json
+      - run: node scripts/cloudflare-secrets.mjs scheduler
+      - name: Verify public and private routes
+        run: node scripts/smoke-deployment.mjs "$TARGET"
+      - name: Record revision
+        run: |
+          echo "Deployed commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Environment: $TARGET" >> "$GITHUB_STEP_SUMMARY"
+          echo "Collection requested: $WAITLIST_ENABLED" >> "$GITHUB_STEP_SUMMARY"

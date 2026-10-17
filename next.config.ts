@@ -2,6 +2,13 @@ import type { NextConfig } from "next";
 
 const config: NextConfig = {
   poweredByHeader: false,
+  // Next's Node tracer follows pg-cloudflare's empty Node export. Workers
+  // needs the actual socket implementation when OpenNext bundles the server.
+  outputFileTracingIncludes: {
+    "/*": [
+      "./node_modules/.pnpm/pg-cloudflare@*/node_modules/pg-cloudflare/dist/index.js",
+    ],
+  },
   async headers() {
     return [
       {
@@ -16,6 +23,14 @@ const config: NextConfig = {
           },
         ],
       },
+      ...["/waitlist/:path*", "/api/waitlist/:path*"].map((source) => ({
+        source,
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      })),
     ];
   },
 };

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Brand } from "@/components/brand";
 import { Icon } from "@/components/icons";
 import { IsometricWorld } from "@/components/isometric-world";
@@ -7,23 +6,23 @@ import { WaitlistForm } from "@/components/waitlist-form";
 import { DiscoveryPlayground } from "@/components/discovery-playground";
 import { CommunityPreview } from "@/components/community-preview";
 import { PartnerInvitation } from "@/components/partner-invitation";
-import { SignupPreview } from "@/components/signup-preview";
-import { isWaitlistEnabled } from "@/lib/waitlist/config";
-import { renderWaitlistEmail } from "@/lib/email/templates";
+import { publicSite } from "@/lib/public-site";
 import { brand } from "@/lib/brand";
-export const dynamic = "force-dynamic";
+import { landingMetadata } from "@/lib/site-metadata";
+export const generateMetadata = landingMetadata;
+export const dynamic = "force-static";
 const questions = [
   [
     `What is ${brand.name}?`,
     "An upcoming activity-discovery and personal Bucket-list app. Find things to try, discover communities around your interests, and keep track of the experiences you want to have.",
   ],
   [
-    "What can I try on this page?",
-    "Explore example activities, build a small Bucket list, add your own ideas and check them off. The preview list stays in this browser and can be downloaded or cleared. It doesn’t create an account or award XP.",
+    "Can I start my Bucket list now?",
+    "Yes. Save an activity, add your own idea and check things off right here. Your list stays on this device, and you can download a copy to keep. When Odyssey launches, you’ll have more ways to plan, track and share your adventures.",
   ],
   [
     "When will the app be ready?",
-    "We’re still building and haven’t announced a launch date. Join the waitlist when signups open for a useful welcome, meaningful progress updates and a launch notification.",
+    "We’re building Odyssey and haven’t announced a launch date. The waitlist brings you a useful welcome, meaningful progress updates and a launch notification.",
   ],
   [
     "Which cities are planned?",
@@ -34,31 +33,24 @@ const questions = [
     "Absolutely not. A new recipe, a chess puzzle, an online class or a games night at home all deserve a place. You don’t have to go far, spend money or bring a crowd to try something new.",
   ],
   [
-    "Are these bookable events or official partners?",
-    "These are activity ideas and community examples. Current event dates, venues and offers will be checked as the catalogue grows. Mentioning a business or community doesn’t mean it is an Odyssey partner.",
+    "How will ranks and leaderboards work?",
+    "Build a different rank in every interest: F, E, D, C, B, A and S. F means Getting started, and Ultimate S celebrates completing a whole trophy edition. Keep growing your personal collection, or join activity leaderboards for friendly competition. Taking part is always your choice; joining the waitlist won’t put you on a public board.",
+  ],
+  [
+    "What do early birds get?",
+    "Confirm your email to receive Founding Explorer recognition and a badge you can save and share. You’ll also get a personal invite link, meaningful progress updates and a launch notification. This celebrates being here early; it is separate from the app’s activity ranks and XP.",
+  ],
+  [
+    "How can I bring my friends?",
+    "Confirm your waitlist email to get your own invite code and shareable link. Send it to people who’d enjoy Odyssey. Your private invite page shows how many new signups have confirmed through your link, without sharing anyone’s email address. Invites are separate from activity XP and competition.",
   ],
   [
     "What will you email me?",
-    "When signups open: a confirmation email, then a welcome with ideas and what to expect. After that, meaningful project updates and a launch notification. No app account, broader newsletter or partner mailing list is created. You can unsubscribe.",
+    "A confirmation email, then a welcome with ideas and what to expect. After that, meaningful project updates and a launch notification. No app account, broader newsletter or partner mailing list is created. You can unsubscribe.",
   ],
 ];
 export default function HomePage() {
-  const enabled = isWaitlistEnabled();
-  const rawContact = process.env.PARTNERS_CONTACT_EMAIL?.trim();
-  const partnerContact =
-    rawContact && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawContact)
-      ? rawContact
-      : null;
-  const previewInput = {
-    origin: "https://example.invalid",
-    token: "sample-only",
-    unsubscribeToken: "sample-only",
-  };
-  const preview = (kind: "confirmation" | "welcome") =>
-    renderWaitlistEmail(kind, previewInput).html.replace(
-      /href="[^"]*"/g,
-      'aria-disabled="true"',
-    );
+  const partnerContact = publicSite.contactEmail;
   return (
     <>
       <a className="skip-link" href="#main">
@@ -80,7 +72,7 @@ export default function HomePage() {
           <div className="hero-copy">
             <p className="eyebrow">
               <span className="status-dot" />
-              SOMETHING NEW IS TAKING SHAPE
+              YOUR NEXT CHAPTER · COMING SOON
             </p>
             <h1 id="hero-title">
               A little
@@ -91,23 +83,15 @@ export default function HomePage() {
             </h1>
             <p className="hero-description">
               Discover things to try, people to meet, and places to explore.
-              We’re building a home for your next first — and a Bucket list for
-              all the things you’ve been meaning to do.
+              Turn “we should” into “we did”, with a Bucket list for all the
+              things you’ve been meaning to do.
             </p>
             <p className="hero-tagline">
               At home or out in the world. It all counts.
             </p>
             <div id="waitlist" className="waitlist-anchor">
-              <p className="signup-intro">
-                In development. Join for launch updates. No account needed.
-              </p>
-              <WaitlistForm enabled={enabled} />
-              {!enabled && (
-                <SignupPreview
-                  confirmationHtml={preview("confirmation")}
-                  welcomeHtml={preview("welcome")}
-                />
-              )}
+              <p className="signup-intro">Get in early. Bring your people.</p>
+              <WaitlistForm />
             </div>
             <a className="hero-explore text-link" href="#try-something">
               Find something you’d love to try <Icon name="arrow" />
@@ -141,7 +125,7 @@ export default function HomePage() {
           <div className="shell section-space">
             <div className="film-layout">
               <div className="film-narrative">
-                <p className="eyebrow">A GLIMPSE OF WHAT WE’RE BUILDING</p>
+                <p className="eyebrow">MAKE ROOM FOR YOUR NEXT FIRST</p>
                 <h2 id="film-title">
                   Same day?
                   <br />
@@ -181,20 +165,16 @@ export default function HomePage() {
                     Read the 20-second film summary <Icon name="plus" />
                   </summary>
                   <p>
-                    A colourful concept film introduces Odyssey project:
-                    discover ideas, make a personal Bucket list, and explore
-                    home activities, new tastes and communities. The closing
-                    invitation is to join the waitlist. App footage is
-                    illustrative; no live account or reward is demonstrated. The
-                    film uses a musical soundtrack and on-screen text.
+                    Meet Odyssey: discover ideas, make a personal Bucket list,
+                    and explore home activities, new tastes and communities. The
+                    closing invitation is to join the waitlist. The film uses a
+                    musical soundtrack and on-screen text.
                   </p>
                 </details>
               </div>
               <div className="launch-film-frame">
                 <Teaser film="launch" />
-                <span className="launch-film-note">
-                  THE PRODUCT IDEA · A CONCEPT PREVIEW
-                </span>
+                <span className="launch-film-note">YOUR LIFE. MORE PLAY.</span>
               </div>
             </div>
             <details className="brand-film-details">
@@ -218,15 +198,69 @@ export default function HomePage() {
                     Wake, work, scroll, repeat? Take a new turn. Stay in or go
                     out: try a game, make a recipe, discover art or taste
                     something new. Save an idea, make time for it and mark it
-                    done. The film imagines experiences becoming progress and
-                    trophies; reward displays are concept examples, not live app
-                    features. Foodie progress is open to any eligible countries’
-                    cuisines, not a prescribed set.
+                    done. Collect experiences, grow your interests and earn
+                    trophies along the way. Taste food from around the world:
+                    choose your own countries and cuisines.
                   </p>
                 </details>
               </div>
             </details>
           </div>
+        </section>
+        <section
+          className="early-access-section shell section-space"
+          aria-labelledby="early-access-title"
+        >
+          <div className="early-access-heading">
+            <p className="eyebrow">
+              GOOD THINGS START WITH A FEW CURIOUS PEOPLE
+            </p>
+            <h2 id="early-access-title">
+              Be here for
+              <br />
+              <span className="serif-note">the beginning.</span>
+            </h2>
+            <p>
+              Get the first chapter in your inbox. Then bring the people you’d
+              love to make memories with.
+            </p>
+            <a className="button button-yellow" href="#waitlist">
+              Join the waitlist <Icon name="arrow" />
+            </a>
+          </div>
+          <ol className="early-access-steps">
+            <li>
+              <span>01</span>
+              <div>
+                <h3>A little badge for a big beginning.</h3>
+                <p>
+                  Confirm your email to become a Founding Explorer. Get a badge
+                  to save and share, a proper welcome and ideas to try.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <div>
+                <h3>Your people. Your invite.</h3>
+                <p>
+                  Get a personal code and link to share. Keep track of confirmed
+                  invites on a private page, just for you.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <div>
+                <h3>Know when it’s time.</h3>
+                <p>
+                  Meaningful progress updates and a launch notification, so
+                  you’re ready for your next first. Unsubscribe whenever you
+                  like.
+                </p>
+              </div>
+            </li>
+          </ol>
         </section>
         <PartnerInvitation contact={partnerContact} />
         <section
@@ -255,7 +289,7 @@ export default function HomePage() {
                     {question === "What will you email me?" && (
                       <>
                         {" "}
-                        <Link href="/privacy">Read the privacy notice.</Link>
+                        <a href="/privacy">Read the privacy notice.</a>
                       </>
                     )}
                   </p>
@@ -287,10 +321,10 @@ export default function HomePage() {
       <footer className="site-footer shell">
         <Brand />
         <span>A little curiosity. A lot more life.</span>
-        <Link href="/privacy">
+        <a href="/privacy">
           Privacy & contact
           <Icon name="arrowUp" />
-        </Link>
+        </a>
       </footer>
     </>
   );

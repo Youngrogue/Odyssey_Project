@@ -10,7 +10,8 @@ export default defineConfig({
   timeout: 30000,
   use: {
     baseURL,
-    channel: "chrome",
+    channel:
+      process.env.PLAYWRIGHT_USE_CHROMIUM === "true" ? undefined : "chrome",
     headless: true,
     trace: "retain-on-failure",
   },

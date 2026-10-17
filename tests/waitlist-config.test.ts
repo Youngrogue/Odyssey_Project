@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import {
   getPublicPrivacyConfig,
   isWaitlistEnabled,
@@ -30,8 +31,25 @@ describe("waitlist configuration", () => {
       PRIVACY_OPERATOR_NAME: "Odyssey Project",
       WAITLIST_RETENTION_DAYS: "90",
       WAITLIST_TOKEN_SECRET: "a-secret-with-at-least-32-characters",
+      WAITLIST_TRUSTED_IP_HEADER: "x-real-ip",
     };
     expect(isWaitlistEnabled()).toBe(true);
+    delete process.env.WAITLIST_TRUSTED_IP_HEADER;
+    expect(isWaitlistEnabled()).toBe(false);
+    expect(() =>
+      execFileSync(process.execPath, ["scripts/check-setup.mjs"], {
+        env: process.env,
+        stdio: "pipe",
+      }),
+    ).toThrow();
+    process.env.APP_ORIGIN = "http://127.0.0.1:3000";
+    expect(isWaitlistEnabled()).toBe(true);
+    expect(() =>
+      execFileSync(process.execPath, ["scripts/check-setup.mjs"], {
+        env: process.env,
+        stdio: "pipe",
+      }),
+    ).not.toThrow();
     expect(getPublicPrivacyConfig()).toEqual({
       operatorName: "Odyssey Project",
       contactEmail: "privacy@odyssey.example",

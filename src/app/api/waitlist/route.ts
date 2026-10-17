@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import { drain } from "../../../lib/email/worker";
 import { getWaitlistRuntimeConfig } from "../../../lib/waitlist/config";
-import { waitlistPool } from "../../../lib/waitlist/db";
+import { connectWaitlist } from "../../../lib/waitlist/db";
 import { readBoundedJson } from "../../../lib/waitlist/http";
 import {
   saveSignup,
@@ -43,7 +43,7 @@ export async function POST(request: Request): Promise<Response> {
   if (parsed.honeypot) return response(400, "Invalid request");
 
   try {
-    const client = await waitlistPool().connect();
+    const client = await connectWaitlist();
     let token: string;
     try {
       ({ token } = await saveSignup(client, {
@@ -51,18 +51,19 @@ export async function POST(request: Request): Promise<Response> {
         ip: getRateLimitClientIp(request.headers, config.trustedIpHeader),
         secret: config.tokenSecret,
         retentionDays: config.retentionDays,
+        referralCode: parsed.referralCode,
       }));
     } finally {
-      client.release();
+      await client.release();
     }
     try {
       after(async () => {
         try {
-          const worker = await waitlistPool().connect();
+          const worker = await connectWaitlist();
           try {
             await drain(worker, config, fetch, 1);
           } finally {
-            worker.release();
+            await worker.release();
           }
         } catch {
           /* Cron recovers committed jobs. */

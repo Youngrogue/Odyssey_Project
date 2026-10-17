@@ -12,6 +12,7 @@ type IconName =
   | "trophy"
   | "home"
   | "plus"
+  | "minus"
   | "mail";
 const paths: Record<IconName, React.ReactNode> = {
   arrow: (
@@ -58,6 +59,7 @@ const paths: Record<IconName, React.ReactNode> = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  minus: <path d="M5 12h14" />,
   mail: (
     <>
       <rect x="3" y="5" width="18" height="14" rx="2" />

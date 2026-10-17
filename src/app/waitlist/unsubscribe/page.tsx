@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Unsubscribe · Odyssey project",
+  title: "Unsubscribe · Odyssey",
   referrer: "no-referrer",
   robots: { index: false, follow: false },
 };
@@ -20,7 +20,7 @@ export default async function Unsubscribe({
     /^[A-Za-z0-9_-]{43}$/.test(params.token);
   return (
     <main className="privacy-page">
-      <a href="/">Odyssey project</a>
+      <a href="/">Odyssey</a>
       <h1>Unsubscribe</h1>
       {params.error && (
         <p role="alert">

@@ -1,99 +1,111 @@
 # Odyssey landing — owner handover
 
-1 October 2026. Code and local preview are prepared. **Live signup collection is closed.** No repository, Vercel project, sender or production database was created; no real email was sent. This file is deliberately self-contained so it can travel with a standalone web repository.
+Updated 17 October 2026. **Live signup collection remains closed; no public deployment is claimed.** The approved release is GitHub → Cloudflare Workers Free, with Neon and Resend. Public name: **Odyssey**; full name: **Odyssey Project**. Production destination: **https://odyssey.soralives.xyz**. Main-app development and Quest World remain separate.
+
+The existing standalone repository is `Youngrogue/Odyssey_Project`. The parent V2 documents and editable media are outside it. See [launch plan and implementation record](CLOUDFLARE_LAUNCH.md) and [review checklist](LAUNCH_CHECKLIST.md).
+
+Provisioned: free Neon project `Odyssey` with separate empty production/staging branches, and active Cloudflare forwarding from `odyssey@soralives.xyz` to the owner's Gmail. Migrations, real delivery and deployment are still pending. Resend signup requires the owner's account/terms step. Provider-dashboard state is not proof of inbox delivery.
 
 ## 1. Review what is working
 
 Run `pnpm dev`, then open `http://127.0.0.1:3000`.
 
-- Explore activity categories, open an idea, and add it to the preview Bucket list.
+- Explore activity categories, open an idea, and add it to the on-device Bucket list.
 - Add a custom idea, choose once/daily/weekly/monthly, check it off, reload and download the list. Progress is local to this browser. Recurring checkmarks reset for the next device-local calendar period; previous periods remain in the local data. Weeks begin Monday. There is no account sync, reminder scheduler, booking, XP or trophy award.
-- Open community examples. Their research status is visible; no current dates, prices or partnership claims are invented.
+- Select the ISO-GLOW dance floor, games lounge and reading garden. The active scene lights up and reveals activities. Research-only organiser names stay in the project catalogue, outside the public page.
+- Open an activity’s “See trophies & leaderboards”, or the progress section. All 18 ideas connect to relevant trophy families. Switch monthly/all-time and “The leaderboard”/“My own pace”. Foodie characters show Mira/Tobi/Dee with requested titles and 2,543/2,218/1,864 monthly XP. These are original illustrated product characters, not customers or live standings; playful titles are not new approved trophy thresholds. F–S ranks, account levels and board position remain distinct. Local checkmarks never write rewards.
 - Play the 20-second Odyssey film and the original 40-second Break the Loop teaser. The players pause each other. Review the portrait film's sound and music/footage rights before publication; audio is non-silent but a listening review is still needed.
-- Use “Try the waitlist preview” to inspect confirmation and welcome emails. It uses `reader@example.com`, sends nothing and creates no waitlist entry.
+- Join directly, through `/?ref=CODE#waitlist`, or with a manually entered 16-character code. Real collection remains closed until configuration passes. Confirming a valid email opens a private invite page; the welcome email includes both a public share link and a separately labelled private access link. The public sample-email walkthrough has been removed.
 - Prepare a partnership introduction. It can be copied/downloaded locally. An “Open email draft” option appears only when a genuine public inbox is configured; the visitor must review/send it in their email app.
 
 The first release can show the page with signups closed while accounts are connected. Do not describe that preview as a working public waitlist.
 
-## 2. Exact inputs needed from the owner
+## 2. Confirmed setup and remaining access
 
-Provide non-secret destinations in the project conversation. Put credentials directly in `.env.local` or Vercel's server environment settings, never in chat or Git.
+| Item | Confirmed value / current state |
+|---|---|
+| GitHub | `Youngrogue/Odyssey_Project`; authenticated CLI; existing local Git, no reinitialisation |
+| Hosting | Cloudflare Workers **Free** with static assets and OpenNext; no paid upgrade authorised |
+| Domain | `odyssey.soralives.xyz`; bind only this new subdomain; preserve other DNS |
+| Database | Neon project `flat-dawn-95458128`, AWS London, PostgreSQL 17, Free; staging and production branches created before any subscriber data |
+| Public identity | Tobi Arogunmati; `odyssey@soralives.xyz` for contact and replies |
+| Inbound email | Exact Odyssey forwarding rule active to the owner's verified Gmail destination; actual delivery still to test |
+| Retention | Pending 7 days; confirmed 180 days after confirmation |
+| Outbound email | Resend setup pending; tracking off; signed delivery/bounce/complaint webhook required |
+| Send budget | 80 attempts/day, subject to provider allowance; retries count |
+| Remaining credentials | Scoped Cloudflare deployment token in GitHub environment secrets; Neon URLs in the correct environment; Resend sending/webhook secrets |
+| Optional referral perks | Founding Explorer recognition implemented; proposed 3/5-referral perks remain inactive |
 
-| Input | Specifically provide or decide | Recommendation |
-|---|---|---|
-| GitHub | Owner/organisation and new or existing private repository URL | An owner-controlled standalone web repo is the simplest initial deployment; keep project docs and editable source media in a separate backed-up project repository/storage |
-| Vercel | Team/account, project destination and approved hosting plan | Pro for this commercial project and the checked-in five-minute recovery schedule; no plan purchased |
-| Neon | Selected account/project and separate staging/production branch connection details | Start with the selected Neon plan and pooled runtime URL; check its current quotas and recovery options |
-| Email provider | Resend account, a domain/subdomain you own, DNS access and chosen sender address | Verified sender subdomain; the website may still use a `.vercel.app` address |
-| Public operator | Real responsible person/business name and monitored privacy/support email | The same monitored address is used as email Reply-To; do not invent a legal entity |
-| Retention | Unconfirmed and confirmed retention, and suppression handling | Proposed 7 days pending and 180 days confirmed; these are recommendations, not accepted policy |
-| Email budget | Actual provider allowance, other senders sharing it, desired daily budget | An initial 80 attempts/day only if the provider allows 100/day and the remaining headroom is adequate; two onboarding emails per confirmed subscriber, plus resends/retries |
-| Partners | Monitored partnership email and any confirmed relationships/permissions | Configure the inbox first; keep named leads separate from verified partners |
-| Launch identity | Keep the tentative Odyssey project name or supply the final name | No custom website domain is required to get a Vercel link |
+Never paste credentials into chat or Git. The Google Sheet is an editorial planner, not a waitlist database. App authentication is unnecessary for this release.
 
-No full-app authentication service, Apple account, Google Sheet OAuth, finished catalogue or trophy-threshold decision is required for this landing page. The Google Sheet remains the editorial content planner, not a waitlist database.
+The notice discloses separately retained keyed suppression hashes with no automatic expiry. Rejoining a suppressed address requires an operator procedure with identity confirmation. Do not remove suppression casually. Changing `WAITLIST_TOKEN_SECRET` without a data migration breaks existing capabilities, encrypted jobs and suppression matching.
 
-**Policy requiring an explicit operational decision:** unsubscribe/bounce/complaint suppression currently keeps a keyed address hash without automatic expiry so it survives deletion of the full signup. Rejoining a suppressed address is not automatic. Review the published privacy wording and approve a retention/rejoin procedure before opening collection. Rotating `WAITLIST_TOKEN_SECRET` without a migration breaks existing capabilities, encrypted jobs and suppression matching; keep it stable and rotate through a planned data migration.
+## 3. GitHub and reproducible checks
 
-## 3. Move the app to GitHub
-
-The local workspace had no Git repository when this build began. Do not overwrite a repository or remote that has since been added.
-
-For a **new standalone web repository**, start inside this `web` folder, inspect the files, then initialise and commit:
+Use the existing `web` repository, root `.`. Do not force-push or add the whole Downloads project. Review staged paths and scan for credentials before committing. `.env.local`, `.dev.vars`, build/cache directories and test traces are ignored; example files are intentionally tracked.
 
 ```sh
-git init -b main
-git add .
-git status --short
-git diff --cached --stat
-git commit -m "Build Odyssey landing and waitlist preview"
+pnpm install --frozen-lockfile
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm test:e2e
+pnpm cf:build
+pnpm test:worker
 ```
 
-Inspect the staged files before the commit. `.gitignore` excludes `.env*` except `.env.example`, dependencies, builds, tests/traces and `.vercel`. It does not inspect arbitrary files for secrets. Then create an empty private GitHub repository in your account, add its actual URL as `origin`, and push `main`. These commands have not been run for you; the owner/repository destination is still missing.
+Node24 and pnpm11.20.0 are pinned. OpenNext1.20.12 and Wrangler4.151.1 are pinned; Next16.4.2 satisfies the adapter's current peer requirement. `pnpm-workspace.yaml` explicitly allows only esbuild/workerd installation scripts and disables automatic optional peer installation. The unused storage-transfer peer is not installed.
 
-If you choose a repository containing the whole project instead, use a deliberate root `.gitignore` and review large source media, private notes and exports before adding files. Set Vercel's root directory to `web`. For a standalone web repository, the root is `.`. Do not blindly commit the whole Downloads project. Separately back up `V2`, research, Stitch exports and editable video originals; ignoring them in Git does not back them up.
+`.github/workflows/release.yml` runs build/types/unit tests, disposable PostgreSQL17 concurrency tests, browser checks and a local Workers smoke test. PR checks receive no deployment credentials. Main releases use an explicit GitHub environment and serialize deployments; they cannot overlap.
 
-## 4. Create a closed Vercel preview first
+The checked-in workflow defaults to **no deployment** until repository variable `CLOUDFLARE_DEPLOY_ENABLED=true`. After setup, main pushes deploy closed staging; production uses the workflow's manual `target=production`. Do not enable collection or indexing until the recorded checks pass. A successful GitHub run is the source of the deployed commit; do not deploy production from an uncommitted laptop checkout.
 
-1. Import the chosen GitHub repository into the chosen Vercel team. Select Next.js, Node **24.x**, the correct root directory, `pnpm install --frozen-lockfile` and `pnpm build`. Leave framework output settings at their Next.js defaults. Runtime is pinned to the locally tested major version. [Supported Vercel Node versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
-2. Leave `WAITLIST_ENABLED=false`. Scope all values separately for preview and production. Never connect arbitrary preview branches to production subscribers or sending credentials.
-3. Deploy to obtain the actual `.vercel.app` URL, then put that exact HTTPS origin (no path) in `APP_ORIGIN` for that environment. Redeploy after environment changes.
-4. Share the closed preview for visual review. The site intentionally remains `noindex, nofollow` in `src/app/layout.tsx`. After the production URL and final launch copy are accepted, add its canonical/social metadata and enable indexing for production only. Email-action pages must stay noindex and no-referrer.
+## 4. Cloudflare configuration and release
 
-**Hosting constraint:** `vercel.json` schedules mail recovery every five minutes and cleanup daily at 03:00 UTC. Hobby permits daily-only cron; more frequent schedules fail deployment. Use Pro for this configuration. A static/closed preview could use a no-cron configuration only where the plan's use terms permit it; do not weaken the live email recovery schedule silently. [Cron limits](https://vercel.com/docs/cron-jobs/usage-and-pricing), [Hobby conditions](https://vercel.com/docs/plans/hobby).
+1. Create GitHub environments `staging` and `production`, restrict deployment to `main`, and scope secrets per environment. Keep production collection disabled.
+2. Create separate Hyperdrive configurations for the two Neon branches, with **query caching disabled**. Use the direct Neon endpoint with TLS; Hyperdrive provides transaction pooling. Verify the deployed pg connection and transaction behaviour.
+3. Set environment variables `CLOUDFLARE_ACCOUNT_ID`, `HYPERDRIVE_ID`, and the secrets below. The deployment token must be limited to required Workers/deployment and domain permissions. Do not reuse a personal OAuth refresh token in CI.
+4. `cloudflare-config.mjs` generates ignored deployment manifests. It binds the production Worker to `odyssey.soralives.xyz` and staging to `odyssey-staging.soralives.xyz`. No unrelated DNS record is replaced. GitHub deploys the landing, runtime secrets and separate scheduler Worker.
+5. Public marketing/privacy HTML, JS, artwork and videos are static assets. Referral codes are parsed in the browser. `/api/waitlist/status` exposes only collection availability. Private email/invite routes and APIs stay dynamic, no-store/noindex/no-referrer. No R2, image-transformation or paid asset binding is required.
+6. Protect staging with Cloudflare Access before enabling test signup. Set `STAGING_ACCESS_VERIFIED=true` only after testing the policy. Restrict Resend webhook delivery through that protection deliberately; never broadly bypass Access for private pages. Supply CI Access service-token headers securely if smoke tests need them.
+7. Measure deployed CPU and startup/resource limits on the **Free** plan. Local success and bundle size do not prove the 10ms Free CPU budget. Keep collection closed if any essential flow fails; do not upgrade or remove safeguards silently.
+8. Check Neon compute usage as well: five-minute database polling can prevent its five-minute idle suspension and exceed its free monthly compute allowance. The current fixed polling schedule is **not accepted as sustainably free**. Resolve this before collection; a durable, idle-aware recovery signal is a candidate, not an implemented feature. Changing to Vercel would not itself fix database polling costs.
+9. Only after provider, free-tier and security checks, record `RELEASE_CHECKS_PASSED=true`; dispatch production with `open_waitlist=true`. Set `SITE_INDEXING_ENABLED=true` in production and rebuild once indexing is ready. Verify the real URL and record GitHub run/deployed SHA.
 
-## 5. Connect Neon and email
+`vercel.json` is retained solely as the historical fallback. Vercel is not the active deployment path. The owner permits reconsidering it if Cloudflare proves unsuitable; no paid Vercel plan or weakened recovery schedule is authorised.
 
-1. Create isolated Neon environments and copy the correct pooled connection URL into `DATABASE_URL`. Keep TLS enabled. Choose hosting/database regions compatibly. Back up any existing database before applying changes.
-2. Copy `.env.example` to `.env.local` for local/staging setup. Fill the settings below. `pnpm setup:check` reports only missing/present names and does not test providers or reveal values.
-3. Apply additive schemas once per environment with `pnpm db:migrate`. This is a controlled deployment step, not part of page requests or every build. The migration does not send email to old intake records.
-4. Add the owned sender domain/subdomain in Resend and apply its supplied DNS verification records. Verify actual sender readiness in its dashboard. You cannot verify `vercel.app` as your sending domain. [Resend domains](https://resend.com/docs/dashboard/domains/introduction).
-5. Disable provider open and click tracking. Add `/api/waitlist/webhook` as the HTTPS webhook URL and subscribe to `email.delivered`, `email.bounced`, and `email.complained`. Store its signing secret separately from the sending API key. [Resend webhooks](https://resend.com/docs/webhooks/introduction).
-6. Configure the protected scheduled worker and purge using `CRON_SECRET`. Vercel supplies the bearer header for configured cron calls. Confirm the schedules run on the intended deployment. Do not put secret query parameters in the URLs.
-7. Verify the host overwrites the selected client-IP header before setting `WAITLIST_TRUSTED_IP_HEADER`. Without it the fallback source bucket is shared; never trust arbitrary client headers. Retest if a CDN/proxy is added.
-8. Enable only in an isolated, controlled staging environment for the live smoke test below. Enable production only after the real sender, contact, privacy, retention and acceptance checks pass.
+## 5. Neon, email and private configuration
 
-### Environment reference
+- Apply `db/001`–`004` through the versioned GitHub workflow, separately per branch. The migration script records applied file checksums and holds a migration lock. No schema reset or copying live subscribers into staging is required. Existing confirmed rows are not silently re-mailed or backfilled.
+- Complete Resend signup, add the owned sender, and apply its exact DNS records. Keep Cloudflare's incoming MX/SPF routing intact; sending return-path records belong on the provider-designated subdomain. Disable open/click tracking. Configure `/api/waitlist/webhook` for signed `email.delivered`, `email.bounced`, and `email.complained` events.
+- The scheduler calls the landing through a private service binding plus bearer secret: recovery every five minutes, cleanup at 03:00 UTC. It has no public operational route. Keep cleanup enabled when mail/collection is paused. Each cleanup request processes at most 500 rows per table; a scheduled pass attempts up to three batches and reports an error if a backlog remains. Operators must clear/monitor that backlog. Suppression hashes are retained.
+- Verify Cloudflare overwrites `cf-connecting-ip`, including forged input and distinct test sources. Disable raw URL/request logging for token-bearing routes, and review account-level logs independently. Configured shapes do not prove provider readiness.
 
-| Variable | Meaning |
+### Configuration reference
+
+| Name | Where / purpose |
 |---|---|
-| `WAITLIST_ENABLED` | Explicit switch; stays `false` until ready. Missing/invalid required settings also keep collection closed. |
-| `DATABASE_URL` | Secret PostgreSQL URL for the correct Neon environment. |
-| `APP_ORIGIN` | Exact public HTTPS origin; loopback HTTP is allowed for local tests. |
-| `PRIVACY_OPERATOR_NAME` | Public responsible name, up to 120 characters. |
-| `PRIVACY_CONTACT_EMAIL` | Monitored public contact; also email Reply-To. |
-| `WAITLIST_RETENTION_DAYS` | Confirmed retention, integer 1–365. |
-| `WAITLIST_PENDING_RETENTION_DAYS` | Pending retention, integer 1–30; defaults to 7, bounded by overall retention. |
-| `WAITLIST_TOKEN_SECRET` | At least 32 random characters. Stable secret used for keyed hashes and encrypted job material. |
-| `RESEND_API_KEY` | Server-only provider sending credential. |
-| `RESEND_WEBHOOK_SECRET` | Endpoint-specific `whsec_…` signing secret. |
-| `WAITLIST_EMAIL_FROM` | Verified bare email address, not a display-name string. |
-| `CRON_SECRET` | At least 32 random characters, distinct from the token secret. |
-| `WAITLIST_DAILY_SEND_BUDGET` | Positive integer attempt budget. Retries consume attempts; no unlimited free sending assumption. |
-| `WAITLIST_TRUSTED_IP_HEADER` | Blank until verified; one of `x-real-ip`, `x-forwarded-for`, `cf-connecting-ip`. |
-| `PARTNERS_CONTACT_EMAIL` | Optional valid public inbox; enables a visitor-reviewed email draft. No server partner intake. |
+| `CLOUDFLARE_API_TOKEN` | GitHub environment secret; deploy only; never client/runtime |
+| `CLOUDFLARE_ACCOUNT_ID` | GitHub environment variable; Sora account |
+| `HYPERDRIVE_ID` | GitHub environment variable; correct branch configuration; query cache off |
+| `DATABASE_URL` | GitHub environment secret for migrations; local Next development only; Workers runtime uses the Hyperdrive binding |
+| `WAITLIST_TOKEN_SECRET` | Separate per environment; random ≥32 characters; stable keyed hashing/encryption secret |
+| `CRON_SECRET` | Separate random ≥32 characters; landing and scheduler binding authentication |
+| `RESEND_API_KEY` | Environment secret; sending-only access to the verified domain where supported |
+| `RESEND_WEBHOOK_SECRET` | Environment secret; endpoint-specific signing key |
+| `WAITLIST_ENABLED` | Generated from release input; false until live checks |
+| `DEPLOYMENT_ENV` | Build/runtime target: development, staging or production; replaces Vercel-specific checks |
+| `APP_ORIGIN` | Exact generated HTTPS origin (local loopback for development) |
+| `PRIVACY_OPERATOR_NAME` / `PRIVACY_CONTACT_EMAIL` | Approved public identity; must match static `public-site.ts` |
+| `WAITLIST_RETENTION_DAYS` / `WAITLIST_PENDING_RETENTION_DAYS` | 180 / 7; must match the published notice |
+| `WAITLIST_EMAIL_FROM` | Verified bare address `odyssey@soralives.xyz` |
+| `WAITLIST_DAILY_SEND_BUDGET` | Initial 80 provider attempts/day, including retries |
+| `WAITLIST_TRUSTED_IP_HEADER` | `cf-connecting-ip` after deployed proxy verification |
+| `SITE_INDEXING_ENABLED` | Explicit production-only build setting; requires enabled production collection in the release script |
+| `RELEASE_CHECKS_PASSED` | Production environment variable; set only with recorded live and security evidence |
+| `STAGING_ACCESS_VERIFIED` | Staging environment variable; actual access-control verification required |
 
-No value is exposed through a `NEXT_PUBLIC_` variable. Generate secrets locally using a cryptographic generator and save them directly in the secret store. The runtime validates configuration shape, not DNS ownership, account quota or actual provider readiness.
+`pnpm setup:check` is a local presence report only. It cannot inspect Hyperdrive, DNS, provider quotas, token scopes or real delivery. No runtime secret is exposed with a `NEXT_PUBLIC_` prefix; the build script blanks runtime secrets before static generation. Keep secrets out of screenshots, traces and public workflow logs.
 
 ## 6. Live acceptance before opening the public waitlist
 
@@ -101,7 +113,11 @@ Use only controlled inboxes and disposable test records. Record the environment,
 
 - [ ] Migrations run successfully on the intended database. A signup and pending confirmation job commit together; unavailable storage shows an honest retry message.
 - [ ] A confirmation email arrives. Merely opening its link does not confirm; clicking Confirm does. Confirming twice produces one welcome job. Check HTML/plain text, Reply-To, unsubscribe headers and mobile email rendering.
+- [ ] Welcome and resend arrive without another signup occurring. These jobs rely on the scheduled worker, so test actual cron execution; no instant-delivery guarantee is made.
 - [ ] An active duplicate does not reveal membership, overwrite preferences or resend welcome mail. Resend cooldown and daily budget behave as documented.
+- [ ] Founding Explorer is recorded only after valid confirmation, not on pending signup or an expired link. Replays keep the original recognition; PNG download works and contains no email/private capability. Old records are not silently emailed or migrated.
+- [ ] Referral signup, manual code and link attribution work end to end. Confirming opens the private page and counts once; duplicate/self/unconfirmed/suppressed/expired addresses do not increase qualified totals. Invalid or deleted codes do not prevent joining. Replays issue no second welcome.
+- [ ] Public share codes cannot access private progress. Welcome links are distinctly labelled; private capability opens only after explicit POST, with a one-day HttpOnly cookie. Copy failure leaves a selectable link; sharing never auto-sends. Unsubscribe immediately denies access and removes that address from referral totals.
 - [ ] Unsubscribe using an older delivered email after requesting a new confirmation; it still revokes the subscription and cancels queued jobs. Test unsubscribe with new collection paused too.
 - [ ] Signed delivery/bounce/complaint events are processed; forged signatures are rejected. Test delivery arriving before the sender's provider-ID write. Suppression blocks new enrolment and sending, including concurrent enrolment/webhook attempts.
 - [ ] Worker recovery after a simulated timeout uses the same provider idempotency key. Quota exhaustion defers rather than loses mail. The five-minute recovery job and daily purge have run successfully with authentication.
@@ -113,15 +129,15 @@ Use only controlled inboxes and disposable test records. Record the environment,
 
 The local test suite and screenshots support the code handoff. They cannot substitute for these live-provider checks. The landing has no bulk campaign scheduler: future build/launch announcements need a separate reviewed send workflow that uses confirmed, unsuppressed recipients and respects unsubscribe/budget limits.
 
-### Optional local PostgreSQL concurrency check
+### Required pre-release PostgreSQL concurrency checks
 
-`tests/waitlist-concurrency.test.ts` runs only when `WAITLIST_TEST_POSTGRES_URL` is explicitly set to a disposable **loopback** PostgreSQL database. It never uses `DATABASE_URL`, creates a random test schema, and removes that schema afterwards. Set that test-only URL in your shell and run:
+`tests/waitlist-concurrency.test.ts` and `tests/waitlist-referral-concurrency.test.ts` run only when `WAITLIST_TEST_POSTGRES_URL` is explicitly set to a disposable **loopback** PostgreSQL database. It never uses `DATABASE_URL`, creates a random test schema, and removes that schema afterwards. Set that test-only URL in your shell and run:
 
 ```sh
-pnpm exec vitest run tests/waitlist-concurrency.test.ts --no-file-parallelism --testTimeout=30000
+pnpm exec vitest run tests/waitlist-concurrency.test.ts tests/waitlist-referral-concurrency.test.ts --no-file-parallelism --testTimeout=30000
 ```
 
-This test is supplied but was skipped locally because no PostgreSQL server was installed. The PGlite tests exercise SQL behavior, but do not establish PostgreSQL cross-connection advisory locking. Run this test and the isolated staging concurrency check before live collection.
+These tests remain skipped locally without a disposable PostgreSQL server. GitHub CI now provisions PostgreSQL17 and must run both before release. The PGlite tests exercise SQL behavior, but do not establish PostgreSQL cross-connection advisory locking. Run both tests and the isolated staging concurrency checks before live collection. They cover suppression/enrollment, first referral attribution, and concurrent referrer deletion.
 
 ## 7. Operation, pauses and rollback
 
@@ -132,3 +148,16 @@ The outbox keeps encrypted token/request material, stable idempotency keys, boun
 To pause collection/sending, set `WAITLIST_ENABLED=false` and redeploy. Keep database, origin, token secret and cron secret available so unsubscribe and retention cleanup continue. A message already being sent can still arrive. Roll back to a compatible app build; do not drop tables or run destructive schema reversals. If a release introduces a schema migration, record it with the release before rolling back code.
 
 For account changes, data removal or rejoining a suppressed address, use a reviewed operator procedure with identity confirmation. There is no admin dashboard yet. Do not delete suppression records casually or rotate secrets just to make a failed job send.
+
+
+## 8. Referral operations and benefit policy
+
+The referral relationship is attached only on a subscriber’s first valid new signup and cannot be reassigned by repeat forms. Codes are random 96-bit identifiers. Separate 256-bit dashboard capabilities are HMAC-stored and encrypted in the durable email job; a public code is never a login. Invite pages are noindex/no-referrer and show aggregate confirmed counts only. Consent version for new records is `2026-10-17-cloudflare`; old records retain their captured version.
+
+Qualified totals represent unique confirmed email addresses, not independently verified humans. There is no device/person identity verification; aliases or separately controlled mailboxes remain a growth-abuse consideration before valuable referral benefits are offered. No cash, discounts, XP or paid entitlement is currently attached to counts.
+
+The access cookie lasts one day; the private email link lasts while its retained signup remains confirmed, unexpired and unsuppressed. Counts can decrease after unsubscribe, suppression or expiry. Purge deletes relationships with their rows and clears orphan attribution via `ON DELETE SET NULL`; no separate permanent referral history exists. Never publish private invite links in analytics, screenshots or shared support logs. Existing source limits and send budgets remain active; invite dashboard reads are limited to 60/source/hour.
+
+**Implemented benefit, chosen under the user’s request for early-bird recognition:** successful explicit waitlist confirmation records a stable Founding Explorer timestamp. Confirmed members can save a PNG badge from their private invitation page. It contains no private link or email. It is waitlist recognition, not an F–S trophy, XP payout, app account or automatic promise of account migration. Existing old confirmed records are not silently backfilled or re-mailed. Delete the retained record to remove stored recognition; saved image copies remain with their holders. Review/change the waitlist award policy when opening full app registration.
+
+**Optional recommendations awaiting choice:** invitation priority at 3 qualified referrals and a product-feedback circle at 5. Confirm exact eligibility, end date, fulfillment and what happens when counts decrease before activating these. Nothing in the current UI or mail promises those thresholds, dates or a monetary benefit. Keep invitation benefits separate from app activity XP and leaderboards.

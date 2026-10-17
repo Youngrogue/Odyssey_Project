@@ -42,8 +42,15 @@ function objectWithKeys(
 export function parseSignup(value: unknown): {
   email: string;
   honeypot: boolean;
+  referralCode?: string;
 } {
-  const record = objectWithKeys(value, ["email", "website"]);
+  const record = objectWithKeys(value, ["email", "website", "referralCode"]);
+  if (
+    record.referralCode !== undefined &&
+    (typeof record.referralCode !== "string" ||
+      !/^[A-Za-z0-9_-]{16}$/.test(record.referralCode))
+  )
+    throw new Error("Invalid referral code");
   if (
     typeof record.email !== "string" ||
     typeof record.website !== "string" ||
@@ -72,7 +79,13 @@ export function parseSignup(value: unknown): {
     !/^(?:[a-z]{2,63}|xn--[a-z0-9-]{2,59})$/.test(labels.at(-1)!)
   )
     throw new Error("Invalid email");
-  return { email, honeypot: record.website.trim().length > 0 };
+  return {
+    email,
+    honeypot: record.website.trim().length > 0,
+    ...(typeof record.referralCode === "string"
+      ? { referralCode: record.referralCode }
+      : {}),
+  };
 }
 
 export function getRateLimitClientIp(

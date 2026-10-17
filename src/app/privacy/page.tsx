@@ -1,21 +1,14 @@
 import { Brand } from "@/components/brand";
-import Link from "next/link";
-import {
-  getPublicPrivacyConfig,
-  isWaitlistEnabled,
-} from "@/lib/waitlist/config";
+import { publicSite } from "@/lib/public-site";
 import { brand } from "@/lib/brand";
+import { waitlistNotice } from "@/lib/waitlist/notice";
 
 export const metadata = { title: `Privacy & contact | ${brand.name}` };
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 export default function PrivacyPage() {
-  const privacy = getPublicPrivacyConfig();
-  const enabled = isWaitlistEnabled();
-  const pendingDays = Math.min(
-    privacy?.retentionDays ?? 7,
-    Number(process.env.WAITLIST_PENDING_RETENTION_DAYS) || 7,
-  );
+  const privacy = publicSite;
+  const pendingDays = publicSite.pendingRetentionDays;
   return (
     <>
       <a className="skip-link" href="#main">
@@ -25,37 +18,29 @@ export default function PrivacyPage() {
         <Brand />
       </header>
       <main id="main" className="privacy-main shell">
-        <Link className="back-link" href="/">
-          ← Back to the idea
-        </Link>
-        <p className="eyebrow">PRIVACY & CONTACT · 1 OCTOBER 2026</p>
+        <a className="back-link" href="/">
+          ← Back to Odyssey
+        </a>
+        <p className="eyebrow">
+          PRIVACY & CONTACT · {waitlistNotice.displayDate}
+        </p>
         <h1>
           A small signup.
           <br />A clear purpose.
         </h1>
-        {!enabled && (
-          <div className="privacy-status">
-            <p>
-              <strong>This is a preview.</strong> Real waitlist signups are
-              closed. The email walkthrough uses a fixed sample address and
-              sends nothing. Operator, contact and service settings must be
-              ready before collection opens.
-            </p>
-          </div>
-        )}
         <p>
-          {brand.name} is the working name for an upcoming activity-discovery
-          and Bucket-list app. This notice covers this landing page and its
-          launch waitlist, not accounts in the future app.
+          {brand.name} (Odyssey Project) is an upcoming activity-discovery and
+          Bucket-list app. This notice covers this landing page and its launch
+          waitlist, not accounts in the future app.
         </p>
-        <h2>Your preview Bucket list</h2>
+        <h2>Your Bucket list on this device</h2>
         <p>
           Ideas you save, custom idea titles, categories, recurrence and
           checklist progress stay in this browser’s local storage. They are not
           sent to our server, synced to another device or added to a future
-          account. Avoid putting sensitive information in your preview list,
-          especially on a shared device. Use “Clear preview” or clear this
-          site’s browser data to remove it. You can download a copy first.
+          account. Avoid putting sensitive information in your list, especially
+          on a shared device. Use “Clear my list” or clear this site’s browser
+          data to remove it. You can download a copy first.
         </p>
         <p>
           The partnership form prepares a draft on this page. It does not submit
@@ -82,18 +67,44 @@ export default function PrivacyPage() {
           store a raw IP address in these counters.
         </p>
         <p>
-          The configured service uses Vercel for hosting, Neon for its private
-          database, and Resend for email delivery. Email delivery, bounce and
-          complaint events help us manage the subscription. Hosting and email
-          services also process technical request and delivery information under
-          their own settings and policies.
+          The service uses Cloudflare for hosting and contact-email forwarding,
+          Neon for its private database, and Resend for email delivery. Email
+          delivery, bounce and complaint events help us manage the subscription.
+          Hosting and email services also process technical request and delivery
+          information under their own settings and policies.
         </p>
         <p>
           Waitlist details are not displayed on this site, published to the
           editorial Google Sheet or shared with activity communities. We do not
-          add advertising trackers or third-party analytics to this page.
-          Provider open and click tracking must be disabled before email sending
-          is enabled.
+          add advertising trackers or third-party analytics to this page. We
+          keep provider open and click tracking disabled.
+        </p>
+        <h2>Invite codes and your private invite page</h2>
+        <p>
+          Confirmed subscribers receive a public invite code and link. If a new
+          subscriber joins through that link, we store the connection between
+          their signup and the inviter. Only new, confirmed, active signups
+          count; repeat signups and self-referrals do not. Unsubscribed,
+          suppressed or expired records stop counting, so totals may decrease.
+        </p>
+        <p>
+          Your public invite code does not grant access to your private page. A
+          separate access link in your welcome email opens a page where you
+          choose to continue; it then sets a private, HttpOnly cookie for one
+          day. Keep this access link private. Anyone holding it may see your
+          invite code and aggregate count while your subscription remains
+          active. No invitee names or email addresses are shown. We do not
+          upload your contacts or send invitations to friends on your behalf.
+        </p>
+        <p>
+          Founding Explorer recognition records when you confirmed as an early
+          waitlist member. Your downloadable badge is made on your device and
+          contains no email address or private invite link. Recognition, invite
+          relationships and access records are retained with the waitlist
+          signup, not as a separate permanent history. Deleting a signup removes
+          its referral relationship; deleting an inviter disconnects remaining
+          invitees. Unsubscribing disables private-page access immediately.
+          Invites do not award activity XP or add you to a public leaderboard.
         </p>
         <h2>Confirmation and unsubscribe</h2>
         <p>
@@ -138,9 +149,9 @@ export default function PrivacyPage() {
         )}
         <p>
           Rate-limit and send-budget counters are kept for about two days.
-          Provider-event records and completed or cancelled email jobs are
-          cleared after 30 days, or sooner when their associated signup is
-          deleted.
+          Provider-event records are cleared after 30 days. Completed or
+          cancelled email jobs are also cleared after 30 days, or sooner when
+          their associated signup is deleted.
         </p>
         <p>
           To avoid contacting an unsubscribed or suppressed address again, we
@@ -152,17 +163,16 @@ export default function PrivacyPage() {
         </p>
         <h2>Films and other content</h2>
         <p>
-          Both films load only when you choose to play them. Their examples
-          describe the product direction; the full app is still in development.
-          The videos, illustrations, logo and fonts are served with this site.
-          Named community examples are research leads, not confirmed partners or
-          a current events calendar.
+          Both films load only when you choose to play them. The videos,
+          original character illustrations, logo and fonts are served with this
+          site. The full app is coming soon. External links open the destination
+          service, which has its own privacy practices.
         </p>
       </main>
       <footer className="site-footer shell">
         <Brand />
         <span>A little curiosity. A lot more life.</span>
-        <Link href="/">Back to the idea</Link>
+        <a href="/">Back to Odyssey</a>
       </footer>
     </>
   );

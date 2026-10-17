@@ -29,6 +29,7 @@ describe.skipIf(!url)(
           "001_waitlist.sql",
           "002_waitlist_email.sql",
           "003_waitlist_review_fixes.sql",
+          "004_waitlist_referrals.sql",
         ])
           await a.query(readFileSync(`db/${f}`, "utf8"));
         const pid = Number(

@@ -1,9 +1,10 @@
+import { hasDatabaseConnection } from "../waitlist/connection";
 import { timingSafeEqual } from "node:crypto";
 import {
   getWaitlistRuntimeConfig,
   getWaitlistActionConfig,
 } from "../waitlist/config";
-import { waitlistPool } from "../waitlist/db";
+import { connectWaitlist } from "../waitlist/db";
 import { readBoundedJson } from "../waitlist/http";
 import {
   getRateLimitClientIp,
@@ -12,6 +13,7 @@ import {
 } from "../waitlist/validation";
 import { act, resend, purge } from "./lifecycle";
 import { drain } from "./worker";
+import { inviteCookie } from "../waitlist/referrals";
 export const result = (status = 200) =>
   Response.json(
     { ok: status === 200 },
@@ -27,6 +29,7 @@ export async function actionHandler(
   request: Request,
   kind: "confirm" | "unsubscribe" | "resend",
 ) {
+  let inviteToken: string | undefined;
   const oneClick =
     kind === "unsubscribe" && new URL(request.url).searchParams.has("token");
   const nativeForm =
@@ -34,7 +37,15 @@ export async function actionHandler(
       .get("content-type")
       ?.startsWith("application/x-www-form-urlencoded") && !oneClick;
   const respond = (status = 200) => {
-    if (!nativeForm) return result(status);
+    if (!nativeForm) {
+      const response = result(status);
+      if (status === 200 && inviteToken && config)
+        response.headers.set(
+          "Set-Cookie",
+          inviteCookie(inviteToken, config.origin),
+        );
+      return response;
+    }
     const code =
       status === 200
         ? kind === "resend"
@@ -44,9 +55,15 @@ export async function actionHandler(
     return new Response(null, {
       status: 303,
       headers: {
-        Location: `/waitlist/${kind === "resend" ? "confirm" : kind}?${code}`,
+        Location:
+          status === 200 && inviteToken
+            ? "/waitlist/invite"
+            : `/waitlist/${kind === "resend" ? "confirm" : kind}?${code}`,
         "Cache-Control": "no-store",
         "Referrer-Policy": "no-referrer",
+        ...(status === 200 && inviteToken && config
+          ? { "Set-Cookie": inviteCookie(inviteToken, config.origin) }
+          : {}),
       },
     });
   };
@@ -94,7 +111,7 @@ export async function actionHandler(
     return respond(400);
   }
   try {
-    const db = await waitlistPool().connect();
+    const db = await connectWaitlist();
     try {
       if (kind === "resend")
         await resend(db, {
@@ -102,16 +119,18 @@ export async function actionHandler(
           secret: config.tokenSecret,
           ip,
         });
-      else
-        await act(db, {
+      else {
+        const outcome = await act(db, {
           token: String(data.token),
           secret: config.tokenSecret,
           ip,
           kind,
           retentionDays: config.retentionDays,
         });
+        inviteToken = outcome?.inviteToken;
+      }
     } finally {
-      db.release();
+      await db.release();
     }
     return respond();
   } catch (e) {
@@ -143,7 +162,7 @@ export async function operatorHandler(
   const config = getWaitlistRuntimeConfig();
   if (
     (!config && kind === "drain") ||
-    !process.env.DATABASE_URL ||
+    !hasDatabaseConnection() ||
     (process.env.CRON_SECRET?.length ?? 0) < 32
   )
     return result(503);
@@ -152,12 +171,22 @@ export async function operatorHandler(
   if (got.length !== expected.length || !timingSafeEqual(got, expected))
     return result(401);
   try {
-    const db = await waitlistPool().connect();
+    const db = await connectWaitlist();
     try {
-      if (kind === "purge") await purge(db);
-      else await drain(db, config!);
+      if (kind === "purge") {
+        const remaining = await purge(db);
+        return Response.json(
+          { ok: true, remaining },
+          {
+            headers: {
+              "Cache-Control": "no-store",
+              "Referrer-Policy": "no-referrer",
+            },
+          },
+        );
+      } else await drain(db, config!);
     } finally {
-      db.release();
+      await db.release();
     }
     return result();
   } catch {

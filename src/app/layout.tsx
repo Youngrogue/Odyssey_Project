@@ -4,6 +4,8 @@ import "@fontsource-variable/plus-jakarta-sans";
 import { brand } from "@/lib/brand";
 import "./globals.css";
 import "./landing-expansion.css";
+import "./community-islands.css";
+import "./rewards-preview.css";
 
 const outfit = localFont({
   src: "../../public/fonts/outfit-variable.ttf",

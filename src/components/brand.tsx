@@ -10,10 +10,7 @@ export function Brand({ inverse = false }: { inverse?: boolean }) {
         width="44"
         height="44"
       />
-      <span>
-        {brand.wordmark}{" "}
-        <span className="brand-project">{brand.descriptor}</span>
-      </span>
+      <span>{brand.wordmark}</span>
     </a>
   );
 }

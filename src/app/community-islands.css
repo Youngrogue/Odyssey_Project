@@ -1,0 +1,236 @@
+.community-island {
+  --iso-body: #171e2b;
+  --iso-deck: #202939;
+  --iso-side: #111a26;
+  --iso-line: #78889a;
+  --iso-detail: #526275;
+  --iso-recess: #0b1420;
+  --iso-ink: #101725;
+  --iso-accent: #b9a5ff;
+  --iso-panel: #101725;
+  --iso-light-off: #29374b;
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  position: relative;
+  padding: 14px 15px 12px;
+  margin: 0 0 26px;
+  border: 1px solid var(--iso-detail);
+  border-radius: 15px;
+  background: var(--iso-panel);
+  color: #c8d1de;
+  text-align: left;
+  overflow: hidden;
+  isolation: isolate;
+}
+.community-island.island-games {
+  --iso-accent: #facc15;
+}
+.community-island.island-books {
+  --iso-accent: #ff9cae;
+}
+.community-island::before {
+  content: "";
+  position: absolute;
+  inset: 5% 10% 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    var(--iso-accent),
+    transparent 65%
+  );
+  opacity: 0;
+}
+.community-island[aria-expanded="true"] {
+  border-color: var(--iso-accent);
+}
+.community-island[aria-expanded="true"]::before {
+  opacity: 0.11;
+}
+.community-island:hover {
+  border-color: var(--iso-accent);
+}
+.community-island:focus-visible {
+  outline: 3px solid var(--indigo);
+  outline-offset: 5px;
+}
+.community-island > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  position: relative;
+}
+.island-plate-label,
+.island-readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+}
+.island-plate-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+.island-readout {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.island-readout > span:last-child {
+  font-size: 20px;
+  line-height: 1;
+}
+.island-power-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--iso-detail);
+}
+.community-island[aria-expanded="true"] .island-power-dot {
+  background: var(--iso-accent);
+  box-shadow: 0 0 12px var(--iso-accent);
+}
+.community-island[aria-expanded="true"] .island-readout {
+  color: var(--iso-accent);
+}
+.island-scene * {
+  vector-effect: non-scaling-stroke;
+}
+.island-scene .iso-face {
+  fill: var(--iso-body);
+  stroke: var(--iso-line);
+  stroke-width: 0.65;
+}
+.island-scene .iso-side {
+  fill: var(--iso-side);
+}
+.island-scene .iso-top {
+  fill: var(--iso-deck);
+}
+.island-scene .iso-detail {
+  fill: none;
+  stroke: var(--iso-detail);
+  stroke-width: 0.6;
+}
+.island-scene .iso-screw {
+  fill: var(--iso-recess);
+  stroke: var(--iso-line);
+  stroke-width: 0.5;
+}
+.island-scene .iso-light {
+  fill: var(--iso-light-off);
+  stroke: var(--iso-line);
+  stroke-width: 0.6;
+}
+.island-scene .iso-sign {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  fill: #e2e8f0;
+  letter-spacing: 0.04em;
+}
+.island-scene .iso-live-floor {
+  fill: var(--iso-deck);
+  stroke: var(--iso-line);
+  stroke-width: 0.6;
+}
+.island-scene .iso-speaker,
+.island-scene .iso-recess {
+  fill: var(--iso-recess);
+  stroke: var(--iso-detail);
+  stroke-width: 0.7;
+}
+.island-scene .iso-person {
+  fill: var(--iso-deck);
+  stroke: var(--iso-line);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.island-scene .iso-person path {
+  fill: none;
+}
+.island-scene .iso-game-square,
+.island-scene .iso-book,
+.island-scene .iso-tree {
+  fill: var(--iso-body);
+  stroke: var(--iso-line);
+  stroke-width: 0.5;
+}
+.island-scene .iso-dot {
+  fill: var(--iso-line);
+}
+.island-scene .iso-garden-path {
+  fill: none;
+  stroke: var(--iso-line);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+.community-island[aria-expanded="true"] .iso-light {
+  fill: var(--iso-accent);
+  stroke: var(--iso-accent);
+  filter: var(--island-glow);
+}
+.community-island[aria-expanded="true"] .iso-sign {
+  fill: var(--iso-ink);
+}
+.community-island[aria-expanded="true"] .iso-live-floor {
+  fill: color-mix(in srgb, var(--iso-accent) 28%, var(--iso-deck));
+  stroke: var(--iso-accent);
+}
+.community-island[aria-expanded="true"] .iso-person {
+  stroke: var(--iso-accent);
+}
+.community-island[aria-expanded="true"] .iso-garden-path {
+  stroke: var(--iso-accent);
+}
+.community-interests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  list-style: none;
+  margin: 14px 0;
+  padding: 0;
+}
+.community-interests li {
+  color: var(--ink);
+  font-size: 0.67rem;
+  font-weight: 600;
+  padding: 5px 9px;
+  background: white;
+  border-radius: 5px;
+}
+.community-bottom-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+.community-bottom-line .community-footnote {
+  margin-top: 0;
+}
+.iso-glow-credit {
+  font-size: 11px;
+  color: var(--muted);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+@media (max-width: 800px) {
+  .community-island {
+    max-width: 440px;
+  }
+  .community-bottom-line {
+    gap: 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .community-island *,
+  .community-island::before {
+    animation: none;
+    transition: none;
+  }
+}

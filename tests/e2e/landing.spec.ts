@@ -2,7 +2,9 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import path from "node:path";
 
-const evidence = path.resolve("../outputs/odyssey-landing-2026-10-01");
+const evidence = path.resolve(
+  process.env.PLAYWRIGHT_EVIDENCE_DIR ?? "test-results/landing-evidence",
+);
 
 for (const width of [320, 390, 768, 1440]) {
   test(`page is usable at ${width}px without early video download`, async ({
@@ -194,8 +196,8 @@ test("reduced motion, reflow, privacy and FAQ remain usable", async ({
     page.getByRole("heading", { name: "A small signup. A clear purpose." }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "test@example.com" }),
-  ).toHaveAttribute("href", "mailto:test@example.com");
+    page.getByRole("link", { name: "odyssey@soralives.xyz" }),
+  ).toHaveAttribute("href", "mailto:odyssey@soralives.xyz");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     "content",
     "noindex, nofollow",
@@ -224,7 +226,7 @@ test("unconfigured preview disables collection and explains privacy", async ({
     page.getByRole("button", { name: "Join the waitlist", exact: true }),
   ).toBeDisabled();
   await expect(
-    page.getByText("Preview — signups aren’t open yet.", { exact: false }),
+    page.getByText("Signups are opening soon.", { exact: false }),
   ).toBeVisible();
   await page.screenshot({ path: `${evidence}/preview-desktop.png` });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -236,7 +238,7 @@ test("unconfigured preview disables collection and explains privacy", async ({
   expect(response.status()).toBe(503);
   await page.getByRole("link", { name: "About your privacy" }).click();
   await expect(
-    page.getByText("This is a preview.", { exact: false }),
+    page.getByText("Tobi Arogunmati", { exact: false }),
   ).toBeVisible();
 });
 

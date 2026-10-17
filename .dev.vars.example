@@ -1,0 +1,4 @@
+# Local workerd only. Copy to .dev.vars and keep it ignored.
+NEXTJS_ENV=production
+WAITLIST_ENABLED=false
+APP_ORIGIN=http://127.0.0.1:43219

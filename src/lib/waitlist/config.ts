@@ -1,4 +1,5 @@
 import { TRUSTED_IP_HEADERS, type TrustedIpHeader } from "./validation";
+import { hasDatabaseConnection } from "./connection";
 
 export type PublicPrivacyConfig = {
   operatorName: string;
@@ -63,22 +64,15 @@ export function isWaitlistEnabled(): boolean {
   )
     return false;
   const trustedHeader = process.env.WAITLIST_TRUSTED_IP_HEADER;
+  const hostname = new URL(validOrigin(process.env.APP_ORIGIN)!).hostname;
+  if (!trustedHeader && hostname !== "localhost" && hostname !== "127.0.0.1")
+    return false;
   if (
     trustedHeader &&
     !TRUSTED_IP_HEADERS.includes(trustedHeader as TrustedIpHeader)
   )
     return false;
-  try {
-    const url = new URL(process.env.DATABASE_URL ?? "");
-    return (
-      (url.protocol === "postgres:" || url.protocol === "postgresql:") &&
-      !!url.hostname &&
-      !!url.username &&
-      !!url.pathname.slice(1)
-    );
-  } catch {
-    return false;
-  }
+  return hasDatabaseConnection();
 }
 
 export function getWaitlistRuntimeConfig() {
@@ -104,7 +98,7 @@ export function getWaitlistActionConfig() {
     !origin ||
     !tokenSecret ||
     tokenSecret.length < 32 ||
-    !process.env.DATABASE_URL
+    !hasDatabaseConnection()
   )
     return null;
   const candidate = process.env.WAITLIST_TRUSTED_IP_HEADER as TrustedIpHeader;

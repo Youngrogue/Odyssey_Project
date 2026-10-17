@@ -12,8 +12,29 @@ const required = [
   "CRON_SECRET",
   "WAITLIST_DAILY_SEND_BUDGET",
 ];
+let localOrigin = false;
+try {
+  const origin = new URL(process.env.APP_ORIGIN ?? "");
+  localOrigin =
+    ["localhost", "127.0.0.1"].includes(origin.hostname) &&
+    ["http:", "https:"].includes(origin.protocol) &&
+    !origin.username &&
+    !origin.password &&
+    origin.pathname === "/" &&
+    !origin.search &&
+    !origin.hash;
+} catch {
+  /* A missing or invalid origin is not a loopback exception. */
+}
+if (!localOrigin) required.push("WAITLIST_TRUSTED_IP_HEADER");
 const missing = required.filter((name) => !process.env[name]?.trim());
 const enabled = process.env.WAITLIST_ENABLED === "true";
+console.log(
+  "Trusted IP header is required for a public origin; localhost can leave it blank. Verify the host overwrites it.",
+);
+console.log(
+  `Search indexing requested: ${process.env.SITE_INDEXING_ENABLED === "true" ? "YES (production origin also required)" : "NO"}`,
+);
 console.log(
   `Real collection requested: ${enabled ? "YES" : "NO — preview only"}`,
 );

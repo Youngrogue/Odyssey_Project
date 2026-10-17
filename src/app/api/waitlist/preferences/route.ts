@@ -1,5 +1,5 @@
 import { getWaitlistRuntimeConfig } from "../../../../lib/waitlist/config";
-import { waitlistPool } from "../../../../lib/waitlist/db";
+import { connectWaitlist } from "../../../../lib/waitlist/db";
 import { readBoundedJson } from "../../../../lib/waitlist/http";
 import {
   savePreferences,
@@ -49,7 +49,7 @@ export async function PATCH(request: Request): Promise<Response> {
 
   try {
     const ip = getRateLimitClientIp(request.headers, config.trustedIpHeader);
-    const client = await waitlistPool().connect();
+    const client = await connectWaitlist();
     try {
       await savePreferences(client, {
         token,
@@ -58,7 +58,7 @@ export async function PATCH(request: Request): Promise<Response> {
         ...parsed,
       });
     } finally {
-      client.release();
+      await client.release();
     }
     return response(200);
   } catch (error) {
