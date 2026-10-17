@@ -37,7 +37,8 @@ Approved operator/contact/retention/budget and destinations are recorded in [CLO
 
 - [ ] Owner completes Resend signup in the handed-off Chrome tab.
 - [ ] Provision scoped deployment access and separate GitHub environment secrets; keep credentials out of chat, Git and logs.
-- [ ] Push reviewed source and verify GitHub's real PostgreSQL concurrency/migration checks.
+- [x] Push reviewed source and verify GitHub's real PostgreSQL concurrency/migration checks (`e51cf5a`).
+- [ ] Complete the full release check job after the enlarged-text layout correction; see [current evidence](CLOUDFLARE_LAUNCH.md).
 - [ ] Configure Hyperdrive for each Neon branch with query caching off; apply migrations and verify transactions.
 - [ ] Deploy closed staging from GitHub, protect test signup access, connect sender/DNS and signed webhooks.
 - [ ] Verify real forwarding to Gmail and confirmation → welcome → badge → referral → unsubscribe.

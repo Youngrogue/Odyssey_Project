@@ -113,5 +113,16 @@ test("every reward family reflows at 320px with 200% text", async ({
       .locator("#your-progress")
       .evaluate((e) => ({ width: e.clientWidth, scroll: e.scrollWidth }));
     expect(bounds.scroll, idea.id).toBeLessThanOrEqual(bounds.width);
+    for (const control of await page
+      .locator(".competition-views button, .foodie-example > strong")
+      .all()) {
+      const size = await control.evaluate((e) => ({
+        width: e.clientWidth,
+        scroll: e.scrollWidth,
+      }));
+      expect(size.scroll, `${idea.id}: text fits its control`).toBeLessThanOrEqual(
+        size.width,
+      );
+    }
   }
 });

@@ -42,7 +42,7 @@ The notice discloses separately retained keyed suppression hashes with no automa
 
 ## 3. GitHub and reproducible checks
 
-Use the existing `web` repository, root `.`. Do not force-push or add the whole Downloads project. Review staged paths and scan for credentials before committing. `.env.local`, `.dev.vars`, build/cache directories and test traces are ignored; example files are intentionally tracked.
+Use the existing `web` repository, root `.`. Source commit `e51cf5a` has been pushed to `main`; GitHub's real PostgreSQL concurrency and repeated-migration checks passed. The initial full CI run found an enlarged-text layout issue; follow [the launch record](CLOUDFLARE_LAUNCH.md) for the correction and final check status. Do not force-push or add the whole Downloads project. Review staged paths and scan for credentials before committing. `.env.local`, `.dev.vars`, build/cache directories and test traces are ignored; example files are intentionally tracked.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -62,7 +62,7 @@ The checked-in workflow defaults to **no deployment** until repository variable 
 
 ## 4. Cloudflare configuration and release
 
-1. Create GitHub environments `staging` and `production`, restrict deployment to `main`, and scope secrets per environment. Keep production collection disabled.
+1. GitHub environments `staging` and `production` now exist and allow only `main`. Add scoped secrets per environment; none have been installed yet. Keep deployment and production collection disabled until their gates pass.
 2. Create separate Hyperdrive configurations for the two Neon branches, with **query caching disabled**. Use the direct Neon endpoint with TLS; Hyperdrive provides transaction pooling. Verify the deployed pg connection and transaction behaviour.
 3. Set environment variables `CLOUDFLARE_ACCOUNT_ID`, `HYPERDRIVE_ID`, and the secrets below. The deployment token must be limited to required Workers/deployment and domain permissions. Do not reuse a personal OAuth refresh token in CI.
 4. `cloudflare-config.mjs` generates ignored deployment manifests. It binds the production Worker to `odyssey.soralives.xyz` and staging to `odyssey-staging.soralives.xyz`. No unrelated DNS record is replaced. GitHub deploys the landing, runtime secrets and separate scheduler Worker.
@@ -137,7 +137,7 @@ The local test suite and screenshots support the code handoff. They cannot subst
 pnpm exec vitest run tests/waitlist-concurrency.test.ts tests/waitlist-referral-concurrency.test.ts --no-file-parallelism --testTimeout=30000
 ```
 
-These tests remain skipped locally without a disposable PostgreSQL server. GitHub CI now provisions PostgreSQL17 and must run both before release. The PGlite tests exercise SQL behavior, but do not establish PostgreSQL cross-connection advisory locking. Run both tests and the isolated staging concurrency checks before live collection. They cover suppression/enrollment, first referral attribution, and concurrent referrer deletion.
+These tests remain skipped locally without a disposable PostgreSQL server. Both passed against GitHub CI's PostgreSQL17.11 service on commit `e51cf5a`; CI repeats them on each release revision. The PGlite tests exercise SQL behavior, but do not establish PostgreSQL cross-connection advisory locking. Isolated staging concurrency checks through Hyperdrive are still required before live collection. They cover suppression/enrollment, first referral attribution, and concurrent referrer deletion.
 
 ## 7. Operation, pauses and rollback
 

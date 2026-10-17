@@ -394,6 +394,7 @@
 .foodie-example > strong {
   display: flex;
   flex-wrap: wrap;
+  overflow-wrap: anywhere;
   gap: 10px;
   align-items: center;
   font-size: 1.5rem;
@@ -413,6 +414,7 @@
 }
 .competition-views {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   background: #f1f0fa;
   border-radius: 9px;
@@ -420,8 +422,9 @@
   margin: 22px 0 12px;
 }
 .competition-views button {
-  flex: 1;
+  flex: 1 1 7rem;
   min-width: 0;
+  overflow-wrap: anywhere;
   min-height: 48px;
   border: 0;
   border-radius: 6px;
@@ -631,15 +634,17 @@
   }
   .sample-standings li {
     display: grid;
-    grid-template-columns: 18px 44px minmax(0, 1fr) auto;
+    grid-template-columns: 18px 44px minmax(0, 1fr);
     gap: 7px;
   }
   .standing-portrait {
     width: 44px;
     height: 44px;
+    grid-row: span 2;
   }
   .standing-position {
     width: 18px;
+    grid-row: span 2;
   }
   .sample-name {
     font-size: 1.18rem;
@@ -653,6 +658,14 @@
   }
   .standing-score {
     font-size: 1.2rem;
+    grid-column: 3;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    text-align: left;
+  }
+  .sample-standings .standing-score small {
+    margin-top: 0;
   }
   .board-periods {
     gap: 2px;

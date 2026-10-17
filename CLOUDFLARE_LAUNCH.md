@@ -30,7 +30,8 @@ The main app, Google Sheet ingestion, catalogue publication and Quest World stay
 - [x] Private routes remain no-store/noindex/no-referrer; build strips runtime secrets; Cloudflare client-IP setting prepared for deployed verification.
 - [x] Service-bound scheduler, authenticated recovery and cleanup, with sending paused separately from cleanup. Cleanup is bounded and reports remaining backlog.
 - [x] GitHub check/release workflow, isolated deployment environments, serialized deployment, migration checksum ledger and closed defaults.
-- [ ] Push and verify GitHub checks, including real PostgreSQL concurrency and repeatable migrations.
+- [x] Push reviewed source to the existing GitHub repository; run real PostgreSQL concurrency and repeatable migration checks successfully in CI.
+- [ ] Complete the entire GitHub release check job. The first run found a 320px/enlarged-text layout overflow; the correction is being verified.
 - [ ] Cloudflare token, Hyperdrive bindings/cache-off verification, staging access protection, GitHub environment secrets and first closed deployment.
 - [ ] Resend sender/DNS/webhooks, live confirmation/welcome/referrals/unsubscribe and scheduled recovery.
 - [ ] Deployed Free-plan CPU/resource acceptance and sustainable Neon compute usage.
@@ -43,6 +44,8 @@ The main app, Google Sheet ingestion, catalogue publication and Quest World stay
 - Free Neon project **Odyssey** (`flat-dawn-95458128`), PostgreSQL17, AWS London; database `odyssey`.
 - Production branch `br-little-shadow-zaermx0o`; isolated staging branch `br-cold-sound-zabiwosm`, created before subscriber data. Neither has app migrations or configured application credentials yet.
 - Resend signup was opened in Chrome; the owner must complete the account/terms step. No password/API key was requested in chat.
+- Source commit `e51cf5a69cc424c9127e759197ce2c8abc198248` is on GitHub `main`. Environments `staging` and `production` exist with `main`-only deployment policies; `CLOUDFLARE_DEPLOY_ENABLED=false`. No deployment credentials have been installed.
+- A temporary deployment-token request is awaiting owner confirmation. Automatic approval review rejected expanding token scope to the whole account; no token was created. Keep existing unrelated Workers outside any permanent deployment permission.
 - No public Worker/domain deployment, Resend DNS record, paid upgrade or sender has been activated.
 
 ## Verification evidence and limits
@@ -50,8 +53,8 @@ The main app, Google Sheet ingestion, catalogue publication and Quest World stay
 - Next production build and typecheck pass. Main, privacy, robots and sitemap are pre-rendered.
 - Cloudflare/OpenNext build passes. Dry-run upload: **1,140.80 KiB gzip** (before later bounded-cleanup changes), below the Workers Free 3 MiB compressed limit. Recheck the final bundle; this is not a CPU measurement.
 - Local Workers runtime smoke passes: public assets/status, private response headers, closed signup rejection and video asset response.
-- Browser suite: 25 scenarios passed initially; five outdated setup expectations were corrected and all five passed on targeted rerun. The new mobile carousel keyboard/View all scenario also passes: **31 scenarios verified** across the runs. Includes 320/390/768/1440, keyboard, 200% text, reduced motion, video and local list behaviour. Live-provider scenarios remain outstanding.
-- Unit/SQL suite: 68 passed; two real-PostgreSQL cases skipped locally. Later affected lifecycle/runtime checks pass, including two added bounded-cleanup/backlog cases. CI has a disposable PostgreSQL17 service for concurrency and repeat-migration checks.
+- Local browser checks pass across 31 scenarios. [The first GitHub run](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39034292704) passed 30/31 and exposed a 2px overflow at 320px with 200% text. The correction wraps long labels, stacks mobile scores below names and keeps enlarged view controls readable; all four affected reward-journey tests pass locally. The complete corrected CI run is still required. Live-provider scenarios remain outstanding.
+- Unit/SQL tests and both real-PostgreSQL concurrency cases passed in that GitHub run against PostgreSQL17.11. Migration application and immediate repeat application both passed. Local bounded-cleanup/backlog tests also pass. This is disposable-database evidence; Neon migration and deployed transaction checks remain open.
 - No existing local test proves production mail delivery, destination forwarding, scheduled invocation, provider logging configuration or deployed CPU limits.
 
 ## Free-plan acceptance: open risks
@@ -80,4 +83,4 @@ The main app, Google Sheet ingestion, catalogue publication and Quest World stay
 | Security readiness | Engineering | Incomplete | Completion-stage audit not yet run; ordinary tests are not the audit |
 | Production opening | Engineering | Blocked by release evidence | Collection/indexing false; no deployed commit recorded |
 
-Deployed commit: **not deployed**. GitHub run: **not recorded**. Worker version: **not created**.
+Deployed commit: **not deployed**. Initial GitHub check run: [39034292704](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39034292704), partial pass with one layout correction required. Worker version: **not created**.
