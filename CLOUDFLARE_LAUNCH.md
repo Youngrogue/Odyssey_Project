@@ -31,7 +31,7 @@ The main app, Google Sheet ingestion, catalogue publication and Quest World stay
 - [x] Service-bound scheduler, authenticated recovery and cleanup, with sending paused separately from cleanup. Cleanup is bounded and reports remaining backlog.
 - [x] GitHub check/release workflow, isolated deployment environments, serialized deployment, migration checksum ledger and closed defaults.
 - [x] Push reviewed source to the existing GitHub repository; run real PostgreSQL concurrency and repeatable migration checks successfully in CI.
-- [ ] Complete the entire GitHub release check job. The first run found a 320px/enlarged-text layout overflow; the correction is being verified.
+- [x] Complete the entire GitHub check job: [run 39034989540](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39034989540) passed on `1a982eeafc6885c2fc7a1e4e8d9110a4225d49f7`. Deployment remained disabled.
 - [ ] Cloudflare token, Hyperdrive bindings/cache-off verification, staging access protection, GitHub environment secrets and first closed deployment.
 - [ ] Resend sender/DNS/webhooks, live confirmation/welcome/referrals/unsubscribe and scheduled recovery.
 - [ ] Deployed Free-plan CPU/resource acceptance and sustainable Neon compute usage.
@@ -40,11 +40,11 @@ The main app, Google Sheet ingestion, catalogue publication and Quest World stay
 ## Provisioning actually completed
 
 - Cloudflare Sora account and `soralives.xyz` zone are accessible.
-- Exact `odyssey@soralives.xyz` forwarding rule is **Active**, using the already verified owner Gmail destination. Other routes/catch-all were preserved. A real message has not yet been observed arriving.
+- Exact `odyssey@soralives.xyz` forwarding rule is **Active**, using the already verified owner Gmail destination. Other routes/catch-all were preserved. Cloudflare recorded controlled test `ODY-20261017-01` as **Forwarded**. Gmail's separately received copy has not been verified. The test originated from the destination account; repeat from the configured sender or another authorised account, following [Cloudflare's testing guidance](https://developers.cloudflare.com/email-service/get-started/route-emails/#test-your-routing-rule).
 - Free Neon project **Odyssey** (`flat-dawn-95458128`), PostgreSQL17, AWS London; database `odyssey`.
 - Production branch `br-little-shadow-zaermx0o`; isolated staging branch `br-cold-sound-zabiwosm`, created before subscriber data. Neither has app migrations or configured application credentials yet.
 - Resend signup was opened in Chrome; the owner must complete the account/terms step. No password/API key was requested in chat.
-- Source commit `e51cf5a69cc424c9127e759197ce2c8abc198248` is on GitHub `main`. Environments `staging` and `production` exist with `main`-only deployment policies; `CLOUDFLARE_DEPLOY_ENABLED=false`. No deployment credentials have been installed.
+- Source commits `e51cf5a` and correction `1a982ee` are on GitHub `main`. Environments `staging` and `production` exist with `main`-only deployment policies; `CLOUDFLARE_DEPLOY_ENABLED=false`. No deployment credentials have been installed.
 - A temporary deployment-token request is awaiting owner confirmation. Automatic approval review rejected expanding token scope to the whole account; no token was created. Keep existing unrelated Workers outside any permanent deployment permission.
 - No public Worker/domain deployment, Resend DNS record, paid upgrade or sender has been activated.
 
@@ -53,8 +53,8 @@ The main app, Google Sheet ingestion, catalogue publication and Quest World stay
 - Next production build and typecheck pass. Main, privacy, robots and sitemap are pre-rendered.
 - Cloudflare/OpenNext build passes. Dry-run upload: **1,140.80 KiB gzip** (before later bounded-cleanup changes), below the Workers Free 3 MiB compressed limit. Recheck the final bundle; this is not a CPU measurement.
 - Local Workers runtime smoke passes: public assets/status, private response headers, closed signup rejection and video asset response.
-- Local browser checks pass across 31 scenarios. [The first GitHub run](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39034292704) passed 30/31 and exposed a 2px overflow at 320px with 200% text. The correction wraps long labels, stacks mobile scores below names and keeps enlarged view controls readable; all four affected reward-journey tests pass locally. The complete corrected CI run is still required. Live-provider scenarios remain outstanding.
-- Unit/SQL tests and both real-PostgreSQL concurrency cases passed in that GitHub run against PostgreSQL17.11. Migration application and immediate repeat application both passed. Local bounded-cleanup/backlog tests also pass. This is disposable-database evidence; Neon migration and deployed transaction checks remain open.
+- [GitHub run 39034989540](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39034989540) passed **all 31 browser scenarios**, including 320/390/768/1440 layouts, keyboard, reduced motion, enlarged text, media and local Bucket lists. It fixes the first run's 2px enlarged-text overflow by wrapping long labels and moving mobile scores below names. Control-level overflow is also checked; the assertion was not relaxed. Live-provider scenarios remain outstanding.
+- The same run passed **72 unit/SQL tests**, including both real-PostgreSQL concurrency cases against PostgreSQL17.11; migration application and immediate repeat application; type generation/typecheck; Next production build; OpenNext build; and the closed local Worker smoke check. This is disposable-database/local-runtime evidence; Neon migration and deployed transaction checks remain open.
 - No existing local test proves production mail delivery, destination forwarding, scheduled invocation, provider logging configuration or deployed CPU limits.
 
 ## Free-plan acceptance: open risks
@@ -83,4 +83,4 @@ The main app, Google Sheet ingestion, catalogue publication and Quest World stay
 | Security readiness | Engineering | Incomplete | Completion-stage audit not yet run; ordinary tests are not the audit |
 | Production opening | Engineering | Blocked by release evidence | Collection/indexing false; no deployed commit recorded |
 
-Deployed commit: **not deployed**. Initial GitHub check run: [39034292704](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39034292704), partial pass with one layout correction required. Worker version: **not created**.
+Verified source commit: **`1a982eeafc6885c2fc7a1e4e8d9110a4225d49f7`**. Passing GitHub check run: [39034989540](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39034989540). Deployed commit: **not deployed**. Worker version: **not created**. Subsequent documentation-only commits record these results and do not change the tested runtime source.

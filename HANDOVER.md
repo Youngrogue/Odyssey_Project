@@ -4,7 +4,7 @@ Updated 17 October 2026. **Live signup collection remains closed; no public depl
 
 The existing standalone repository is `Youngrogue/Odyssey_Project`. The parent V2 documents and editable media are outside it. See [launch plan and implementation record](CLOUDFLARE_LAUNCH.md) and [review checklist](LAUNCH_CHECKLIST.md).
 
-Provisioned: free Neon project `Odyssey` with separate empty production/staging branches, and active Cloudflare forwarding from `odyssey@soralives.xyz` to the owner's Gmail. Migrations, real delivery and deployment are still pending. Resend signup requires the owner's account/terms step. Provider-dashboard state is not proof of inbox delivery.
+Provisioned: free Neon project `Odyssey` with separate empty production/staging branches, and active Cloudflare forwarding from `odyssey@soralives.xyz` to the owner's Gmail. A controlled message is recorded as Forwarded by Cloudflare; a separately received Gmail copy is still unverified. Neon migrations, waitlist delivery and deployment are pending. Resend signup requires the owner's account/terms step. Provider-dashboard state is not proof of inbox delivery.
 
 ## 1. Review what is working
 
@@ -42,7 +42,7 @@ The notice discloses separately retained keyed suppression hashes with no automa
 
 ## 3. GitHub and reproducible checks
 
-Use the existing `web` repository, root `.`. Source commit `e51cf5a` has been pushed to `main`; GitHub's real PostgreSQL concurrency and repeated-migration checks passed. The initial full CI run found an enlarged-text layout issue; follow [the launch record](CLOUDFLARE_LAUNCH.md) for the correction and final check status. Do not force-push or add the whole Downloads project. Review staged paths and scan for credentials before committing. `.env.local`, `.dev.vars`, build/cache directories and test traces are ignored; example files are intentionally tracked.
+Use the existing `web` repository, root `.`. Corrected source commit `1a982ee` is pushed to `main`; [its GitHub check run](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39034989540) passed 72 unit/database tests, 31 browser scenarios, repeatable migrations, types, both builds and the local Worker check. Follow [the launch record](CLOUDFLARE_LAUNCH.md) for the remaining live gates. Do not force-push or add the whole Downloads project. Review staged paths and scan for credentials before committing. `.env.local`, `.dev.vars`, build/cache directories and test traces are ignored; example files are intentionally tracked.
 
 ```sh
 pnpm install --frozen-lockfile
