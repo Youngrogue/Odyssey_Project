@@ -2,7 +2,7 @@
 
 Updated 18 October 2026. Compare the rendered page against the approved Solar Play/isometric direction and the product decisions below. The Stitch app exports are references for the future app; this landing is a prelaunch landing page, not a copy of every app screen.
 
-**Current state:** approved GitHub → Cloudflare Free implementation is in progress. Neon branches and matching GitHub database secrets, inbound forwarding, empty Odyssey Workers and restricted deployment tokens are provisioned. Resend domain is Verified and separate sending keys are stored in GitHub; webhook, tracking verification and database transport setup remain outstanding. Runtime source `ee0ae29` is pushed and its CI passed all checks. No code version, deployment or website DNS route exists; collection remains closed. Use [the current launch record](CLOUDFLARE_LAUNCH.md) and [handover](HANDOVER.md). Earlier local results below are historical, not proof of a live release.
+**Current state:** approved GitHub → Cloudflare Free implementation is in progress. Neon branches and matching GitHub database secrets, inbound forwarding, empty Odyssey Workers and restricted deployment tokens are provisioned. Resend domain is Verified and separate sending keys are stored in GitHub; webhook, tracking verification and direct Neon transport validation remain outstanding. The owner approved replacing Hyperdrive with the Neon serverless WebSocket driver; no database migration between providers is required. Earlier runtime source `ee0ae29` is pushed and its CI passed all checks. No code version, deployment or website DNS route exists; collection remains closed. Use [the current launch record](CLOUDFLARE_LAUNCH.md) and [handover](HANDOVER.md). Earlier local results below are historical, not proof of a live release.
 
 ## 1. Compare the design with the working page
 
@@ -52,7 +52,10 @@ Approved operator/contact/retention/budget and destinations are recorded in [CLO
 - [x] Verify owner-activated Zero Trust Free in the account overview.
 - [ ] Configure and verify staging Access policies and CI service access; activation alone does not protect staging.
 - [ ] Recheck the strict zero-cost boundaries, shared mail budgets and provider Free/overage settings before release; see [the cost record](CLOUDFLARE_LAUNCH.md#strict-zero-cost-operating-rule--owner-reaffirmed-18-october).
-- [ ] Configure Hyperdrive for each Neon branch with query caching off; apply migrations and verify transactions.
+- [x] Owner selects direct Neon serverless WebSocket connectivity; supersede Hyperdrive setup without moving databases.
+- [ ] Finish and verify pinned `@neondatabase/serverless` 1.2.0 request-scoped clients, matching runtime `DATABASE_URL` secret delivery and removal of Hyperdrive bindings/requirements.
+- [ ] Record fresh unit/concurrency, types, browser, Next/OpenNext, Worker and CI results for the direct Neon revision; earlier results do not validate the new transport.
+- [ ] Apply migrations separately to staging/production Neon branches and verify actual WebSocket transactions, lock contention, connection close and failure/retry behavior.
 - [ ] Deploy closed staging from GitHub, protect test signup access, connect sender/DNS and signed webhooks.
 - [ ] Verify real forwarding to Gmail and confirmation → welcome → badge → referral → unsubscribe.
 - [ ] Verify scheduled recovery without another signup, bounded cleanup and failures/retries.
@@ -68,7 +71,7 @@ Approved operator/contact/retention/budget and destinations are recorded in [CLO
 | Product clarity and discovery | Unassigned | **Open** until actual deployed visitor journeys are verified |
 | Security readiness | Engineering | **Incomplete**; required completion-stage audit and deployment evidence outstanding |
 | Free-tier acceptance | Engineering | **Incomplete**; local runtime/bundle pass, deployed CPU and Neon idle recovery unresolved |
-| Provider accounts | Owner account steps + Engineering | Resend domain Verified; database and separate sending keys stored. Webhook, tracking, database transport, Access policies and live checks outstanding; Zero Trust Free is active. Direct Neon alternative documented; no switch implemented |
+| Provider accounts | Owner account steps + Engineering | Resend domain Verified; database and separate sending keys stored. Webhook, tracking, direct Neon validation, Access policies and live checks outstanding; Zero Trust Free is active. Direct Neon is owner-approved and implementation/verification is in progress |
 | Deployment-token rotation | Engineering | Due before **24 October 2026**; retain per-environment Worker scope and verify deployment capabilities |
 
 Follow [the Cloudflare deployment sequence](HANDOVER.md#4-cloudflare-configuration-and-release). Vercel is a permitted fallback to assess if needed, not the current host or an approved purchase. Main-app authentication, Google Sheets import and Quest World remain outside this landing release.

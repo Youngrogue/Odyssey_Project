@@ -4,7 +4,7 @@ Updated 18 October 2026. **Live signup collection remains closed; no public depl
 
 The existing standalone repository is `Youngrogue/Odyssey_Project`. The parent V2 documents and editable media are outside it. See [launch plan and implementation record](CLOUDFLARE_LAUNCH.md) and [review checklist](LAUNCH_CHECKLIST.md).
 
-Provisioned: free Neon project `Odyssey` with separate production/staging branches and matching `DATABASE_URL` GitHub secrets, active Cloudflare forwarding from `odyssey@soralives.xyz` to the owner's Gmail, four empty Odyssey Worker records, and restricted deployment tokens. Resend's domain is **Verified as of 03:22 on 18 October 2026 (Africa/Lagos)**; DKIM and both DNS-only CNAMEs are retained. Separate domain-restricted sending-only keys are stored as `RESEND_API_KEY` in the matching GitHub environments. Webhook and live email tests remain outstanding. Hyperdrive/cache-off setup is prepared but not created. A controlled message is recorded as Forwarded by Cloudflare; a separately received Gmail copy is still unverified. Neon migrations, waitlist delivery and deployment remain pending. Provider-dashboard state is not proof of inbox delivery.
+Provisioned: free Neon project `Odyssey` with separate production/staging branches and matching `DATABASE_URL` GitHub secrets, active Cloudflare forwarding from `odyssey@soralives.xyz` to the owner's Gmail, four empty Odyssey Worker records, and restricted deployment tokens. Resend's domain is **Verified as of 03:22 on 18 October 2026 (Africa/Lagos)**; DKIM and both DNS-only CNAMEs are retained. Separate domain-restricted sending-only keys are stored as `RESEND_API_KEY` in the matching GitHub environments. Webhook and live email tests remain outstanding. The owner selected direct Neon serverless connectivity; Hyperdrive setup is superseded and no Hyperdrive object is needed. New transport verification remains pending. A controlled message is recorded as Forwarded by Cloudflare; a separately received Gmail copy is still unverified. Neon migrations, waitlist delivery and deployment remain pending. Provider-dashboard state is not proof of inbox delivery.
 
 ## 1. Review what is working
 
@@ -27,7 +27,7 @@ The first release can show the page with signups closed while accounts are conne
 | GitHub | `Youngrogue/Odyssey_Project`; authenticated CLI; existing local Git, no reinitialisation |
 | Hosting | Cloudflare Workers **Free** with static assets and OpenNext; no paid upgrade authorised |
 | Domain | `odyssey.soralives.xyz`; bind only this new subdomain; preserve other DNS |
-| Database | Neon project `flat-dawn-95458128`, AWS London, PostgreSQL 17, Free; staging and production branches created before any subscriber data |
+| Database | Neon project `flat-dawn-95458128`, AWS London, PostgreSQL 17, Free; staging and production branches created before any subscriber data; direct serverless WebSocket connection selected |
 | Public identity | Tobi Arogunmati; `odyssey@soralives.xyz` for contact and replies |
 | Inbound email | Exact Odyssey forwarding rule active to the owner's verified Gmail destination; actual delivery still to test |
 | Retention | Pending 7 days; confirmed 180 days after confirmation |
@@ -35,7 +35,7 @@ The first release can show the page with signups closed while accounts are conne
 | Resend account snapshot | 18 October: Transactional Free, 0/100 daily and 0/3,000 monthly sends, 2/3 domains, pay-as-you-go disabled, no webhooks; allowance is shared and must be rechecked before sending |
 | Send budget | 80 attempts/day, subject to provider allowance; retries count |
 | Deployment credentials | `CLOUDFLARE_API_TOKEN` stored separately in the `staging` and `production` GitHub environments; each token covers only that environment's two Odyssey Workers and expires 24 October 2026; actual deployment capability unverified |
-| Remaining credentials | Resend webhook signing secret, database transport and Access configuration. Matching Neon `DATABASE_URL`, separate application signing keys and `RESEND_API_KEY` are stored per GitHub environment |
+| Remaining credentials | Resend webhook signing secret and Access configuration; direct Neon runtime delivery still needs verification. Matching Neon `DATABASE_URL`, separate application signing keys and `RESEND_API_KEY` are stored per GitHub environment |
 | Optional referral perks | Founding Explorer recognition implemented; proposed 3/5-referral perks remain inactive |
 
 Never paste credentials into chat or Git. The Google Sheet is an editorial planner, not a waitlist database. App authentication is unnecessary for this release.
@@ -58,7 +58,9 @@ pnpm cf:build
 pnpm test:worker
 ```
 
-Node24 and pnpm11.20.0 are pinned. OpenNext1.20.12 and Wrangler4.151.1 are pinned; Next16.4.2 satisfies the adapter's current peer requirement. `pnpm-workspace.yaml` explicitly allows only esbuild/workerd installation scripts and disables automatic optional peer installation. The unused storage-transfer peer is not installed.
+The direct Neon transport revision needs a fresh check run; the earlier CI result above does not validate it. Record that revision and CI/live results in [the direct Neon record](CLOUDFLARE_LAUNCH.md#direct-neon-connection-approved--18-october).
+
+Node24 and pnpm11.20.0 are pinned. OpenNext1.20.12 and Wrangler4.151.1 are pinned; Next16.4.2 satisfies the adapter's current peer requirement. `pnpm-workspace.yaml` explicitly allows only esbuild/workerd installation scripts and disables automatic optional peer installation. The unused storage-transfer peer is not installed. The direct runtime driver is `@neondatabase/serverless` 1.2.0, using WebSocket clients for interactive transactions; `pg` is retained for loopback development/tests and migration tooling.
 
 `.github/workflows/release.yml` runs build/types/unit tests, disposable PostgreSQL17 concurrency tests, browser checks and a local Workers smoke test. PR checks receive no deployment credentials. Main releases use an explicit GitHub environment and serialize deployments; they cannot overlap.
 
@@ -67,8 +69,8 @@ The checked-in workflow defaults to **no deployment** until repository variable 
 ## 4. Cloudflare configuration and release
 
 1. GitHub environments `staging` and `production` allow only `main`. Each now holds its own `CLOUDFLARE_API_TOKEN`: a seven-day Individual Workers Editor token restricted to that environment's two Odyssey Workers. Both expire **24 October 2026**. Add the remaining secrets and verify token capabilities during the first closed GitHub deployment; do not assume resource provisioning proves deployment access. Keep deployment and production collection disabled until their gates pass.
-2. Create separate Hyperdrive configurations for the two Neon branches, with **query caching disabled**. The cache-off form is prepared but no Hyperdrive has been created; action-time confirmation is pending. The direct endpoints, database `odyssey` and required TLS were verified before storing matching `DATABASE_URL` secrets in GitHub. Verify deployed pg connection and transaction behaviour after creation.
-3. Set environment variables `CLOUDFLARE_ACCOUNT_ID`, `HYPERDRIVE_ID`, and the secrets below. Four empty Worker records already exist: `odyssey-landing`, `odyssey-landing-staging`, `odyssey-landing-scheduler` and `odyssey-landing-staging-scheduler`. Public `workers.dev` and previews are disabled; they have no code versions, deployments or website DNS routes. Existing tokens grant only Individual Workers Editor access to the matching pair; no account-wide grant exists. Assess any missing deployment capability explicitly rather than silently widening access. Do not reuse a personal OAuth refresh token in CI.
+2. Use the existing matching `DATABASE_URL` GitHub secret for each Neon branch. The workflow supplies it to migrations and the corresponding landing Worker as runtime `env.DATABASE_URL`; no Hyperdrive configuration or binding is required. The direct endpoints, database `odyssey` and required TLS were verified before secret storage. The runtime opens/closes a Neon WebSocket client per invocation; verify deployed connection, transaction, lock, failure and retry behavior before live collection. This changes transport, not database provider or stored data.
+3. Set environment variable `CLOUDFLARE_ACCOUNT_ID` and the secrets below. Remove any obsolete `HYPERDRIVE_ID` requirement; do not put `DATABASE_URL` in manifest variables or build output. Four empty Worker records already exist: `odyssey-landing`, `odyssey-landing-staging`, `odyssey-landing-scheduler` and `odyssey-landing-staging-scheduler`. Public `workers.dev` and previews are disabled; they have no code versions, deployments or website DNS routes. Existing tokens grant only Individual Workers Editor access to the matching pair; no account-wide grant exists. Assess any missing deployment capability explicitly rather than silently widening access. Do not reuse a personal OAuth refresh token in CI.
 4. `cloudflare-config.mjs` generates ignored deployment manifests. It binds the production Worker to `odyssey.soralives.xyz` and staging to `odyssey-staging.soralives.xyz`. No unrelated DNS record is replaced. GitHub bootstraps the private coordinator only when no deployed version exists, then deploys the landing, runtime secrets and full scheduler. Existing running recovery is not disabled at the start of a release.
 5. Public marketing/privacy HTML, JS, artwork and videos are static assets. Referral codes are parsed in the browser. `/api/waitlist/status` exposes only collection availability. Private email/invite routes and APIs stay dynamic, no-store/noindex/no-referrer. No R2, image-transformation or paid asset binding is required.
 6. The owner activated Zero Trust and the account overview now confirms **Zero Trust Free**. Configure the Odyssey staging Access application, explicit owner/tester policy and CI service token before enabling test signup; none is verified merely by plan activation. Set `STAGING_ACCESS_VERIFIED=true` only after testing the policy. Restrict Resend webhook delivery through that protection deliberately; never broadly bypass Access for private pages. Supply CI Access service-token headers securely if smoke tests need them.
@@ -94,8 +96,7 @@ The checked-in workflow defaults to **no deployment** until repository variable 
 |---|---|
 | `CLOUDFLARE_API_TOKEN` | GitHub environment secret; deploy only; never client/runtime |
 | `CLOUDFLARE_ACCOUNT_ID` | GitHub environment variable; Sora account |
-| `HYPERDRIVE_ID` | GitHub environment variable; correct branch configuration; query cache off |
-| `DATABASE_URL` | GitHub environment secret for migrations; local Next development only; Workers runtime uses the Hyperdrive binding |
+| `DATABASE_URL` | Separate GitHub environment secret for migrations and matching landing Worker runtime; accessed as `env.DATABASE_URL`, never a public/build variable. No Hyperdrive binding required |
 | `WAITLIST_TOKEN_SECRET` | Separate per environment; random ≥32 characters; stable keyed hashing/encryption secret |
 | `CRON_SECRET` | Separate random ≥32 characters; landing and scheduler binding authentication |
 | `RESEND_API_KEY` | Environment secret; sending-only access to the verified domain where supported |
@@ -112,7 +113,7 @@ The checked-in workflow defaults to **no deployment** until repository variable 
 | `RELEASE_CHECKS_PASSED` | Production environment variable; set only with recorded live and security evidence |
 | `STAGING_ACCESS_VERIFIED` | Staging environment variable; actual access-control verification required |
 
-`pnpm setup:check` is a local presence report only. It cannot inspect Hyperdrive, DNS, provider quotas, token scopes or real delivery. No runtime secret is exposed with a `NEXT_PUBLIC_` prefix; the build script blanks runtime secrets before static generation. Keep secrets out of screenshots, traces and public workflow logs.
+`pnpm setup:check` is a local presence report only. It cannot prove Neon connectivity, DNS, provider quotas, token scopes or real delivery. No runtime secret is exposed with a `NEXT_PUBLIC_` prefix; the build script blanks runtime secrets before static generation. Keep secrets out of screenshots, traces and public workflow logs.
 
 ## 6. Live acceptance before opening the public waitlist
 
@@ -144,7 +145,7 @@ The local test suite and screenshots support the code handoff. They cannot subst
 pnpm exec vitest run tests/waitlist-concurrency.test.ts tests/waitlist-referral-concurrency.test.ts --no-file-parallelism --testTimeout=30000
 ```
 
-These tests remain skipped locally without a disposable PostgreSQL server. Both passed against GitHub CI's PostgreSQL17.11 service on commit `e51cf5a`; CI repeats them on each release revision. The PGlite tests exercise SQL behavior, but do not establish PostgreSQL cross-connection advisory locking. Isolated staging concurrency checks through Hyperdrive are still required before live collection. They cover suppression/enrollment, first referral attribution, and concurrent referrer deletion.
+These tests remain skipped locally without a disposable PostgreSQL server. Both passed against GitHub CI's PostgreSQL17.11 service on commit `e51cf5a`; CI repeats them on each release revision. The PGlite tests exercise SQL behavior, but do not establish PostgreSQL cross-connection advisory locking. Isolated staging concurrency checks through the new Neon WebSocket runtime are still required before live collection; loopback `pg` tests alone do not validate the new transport. They cover suppression/enrollment, first referral attribution, and concurrent referrer deletion.
 
 ## 7. Operation, pauses and rollback
 
@@ -156,7 +157,7 @@ To pause collection/sending, set `WAITLIST_ENABLED=false` and redeploy. Keep dat
 
 For account changes, data removal or rejoining a suppressed address, use a reviewed operator procedure with identity confirmation. There is no admin dashboard yet. Do not delete suppression records casually or rotate secrets just to make a failed job send.
 
-**Deployment-token rotation:** replace both GitHub environment tokens before **24 October 2026**. Preserve the Individual Workers Editor restriction to each environment's landing/scheduler pair, store replacements only in the corresponding environment secret, verify the relevant GitHub deployment, then revoke superseded credentials. Token creation did not change a paid plan; deployed resource usage still needs the separate Free-plan acceptance checks. The earlier broad-scope approval restriction was resolved through these narrow tokens. Chrome recovered through a fresh Resend tab and both approved sending keys are now stored. Zero Trust Free activation is verified. Hyperdrive access remains unapproved; [direct Neon is a supported alternative under review](CLOUDFLARE_LAUNCH.md#database-connection-alternative--18-october). No transport switch has been implemented. The owner reaffirmed strict zero additional cost; follow the [cost boundaries](CLOUDFLARE_LAUNCH.md#strict-zero-cost-operating-rule--owner-reaffirmed-18-october).
+**Deployment-token rotation:** replace both GitHub environment tokens before **24 October 2026**. Preserve the Individual Workers Editor restriction to each environment's landing/scheduler pair, store replacements only in the corresponding environment secret, verify the relevant GitHub deployment, then revoke superseded credentials. Token creation did not change a paid plan; deployed resource usage still needs the separate Free-plan acceptance checks. The earlier broad-scope approval restriction was resolved through these narrow tokens. Chrome recovered through a fresh Resend tab and both approved sending keys are now stored. Zero Trust Free activation is verified. The owner selected [direct Neon](CLOUDFLARE_LAUNCH.md#direct-neon-connection-approved--18-october); Hyperdrive access/setup is no longer required. Implementation and new transport validation are in progress, without changing stored databases. The owner reaffirmed strict zero additional cost; follow the [cost boundaries](CLOUDFLARE_LAUNCH.md#strict-zero-cost-operating-rule--owner-reaffirmed-18-october).
 
 
 ## 8. Referral operations and benefit policy

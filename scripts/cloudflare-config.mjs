@@ -1,16 +1,17 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { experimental_readRawConfig } from "wrangler";
+import { isNeonDatabaseUrl } from "../src/lib/waitlist/database-url.mjs";
 const target = process.argv[2];
 if (!["staging", "production"].includes(target))
   throw Error("Choose staging or production");
 const account = process.env.CLOUDFLARE_ACCOUNT_ID;
 if (!/^[a-f0-9]{32}$/.test(account ?? ""))
   throw Error("CLOUDFLARE_ACCOUNT_ID is required");
-const hyperdrive = process.env.HYPERDRIVE_ID;
-if (hyperdrive && !/^[a-f0-9]{32}$/.test(hyperdrive))
-  throw Error("Invalid HYPERDRIVE_ID");
+const database = process.env.DATABASE_URL;
+if (database && !isNeonDatabaseUrl(database))
+  throw Error("DATABASE_URL must be a Neon PostgreSQL URL with required TLS");
 const enabled = process.env.WAITLIST_ENABLED === "true";
-if (enabled && !hyperdrive) throw Error("Collection requires Hyperdrive");
+if (enabled && !database) throw Error("Collection requires DATABASE_URL");
 if (
   target === "production" &&
   enabled &&
@@ -60,7 +61,6 @@ config.vars = {
       process.env.SITE_INDEXING_ENABLED === "true",
   ),
 };
-if (hyperdrive) config.hyperdrive = [{ binding: "HYPERDRIVE", id: hyperdrive }];
 await mkdir(".cloudflare-build", { recursive: true });
 await writeFile(
   ".cloudflare-build/landing.json",
@@ -73,7 +73,7 @@ scheduler.name = `${name}-scheduler`;
 scheduler.account_id = account;
 scheduler.main = "../cloudflare/scheduler.ts";
 scheduler.services[0].service = name;
-const scheduled = Boolean(hyperdrive && process.env.CRON_SECRET);
+const scheduled = Boolean(database && process.env.CRON_SECRET);
 scheduler.vars = {
   SCHEDULER_ENABLED: String(scheduled),
   MAIL_ENABLED: String(enabled),

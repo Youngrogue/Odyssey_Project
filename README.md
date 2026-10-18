@@ -2,7 +2,7 @@
 
 A prelaunch landing page: isometric activity illustrations and interactive ISO-GLOW community scenes, 18 explorable ideas, a browser-local Bucket list, recurring checklists, illustrated trophy/leaderboard storytelling, two playable films, a partnership draft and confirmed invitation referrals. The real waitlist backend is implemented and stays closed until configured.
 
-**Start with [HANDOVER.md](HANDOVER.md)** for GitHub → Cloudflare setup, environment variables, live checks and rollback. The approved public destination is `https://odyssey.soralives.xyz`. Neon staging/production branches and inbound email forwarding have been provisioned; the sender, migrations and deployment are still pending. Collection stays closed.
+**Start with [HANDOVER.md](HANDOVER.md)** for GitHub → Cloudflare setup, environment variables, live checks and rollback. The approved public destination is `https://odyssey.soralives.xyz`. Neon staging/production branches and inbound email forwarding have been provisioned. The owner selected direct Neon serverless WebSocket connectivity, replacing Hyperdrive without moving databases. Resend's domain is verified and separate sending keys are stored in GitHub; new transport validation, webhook, tracking checks, migrations and deployment are still pending. Collection stays closed.
 
 Use [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) to review the visitor journeys, and [CLOUDFLARE_LAUNCH.md](CLOUDFLARE_LAUNCH.md) for the current implementation evidence and blockers.
 
@@ -26,6 +26,8 @@ pnpm test:e2e
 pnpm cf:build
 pnpm test:worker
 ```
+
+Cloudflare runtime uses pinned `@neondatabase/serverless` 1.2.0 with a WebSocket `Client` opened and closed per invocation, preserving interactive transactions. Its `DATABASE_URL` is a runtime secret supplied from the corresponding GitHub environment; no Hyperdrive object, ID or binding is required. `pg` remains for loopback development/tests and migration tooling. Never put the database URL in public environment variables or static assets.
 
 Browser tests use installed Google Chrome (bundled Chromium in CI) and two local production servers on ports 43217/43218. Build first. UI success responses are fixtures; the unavailable-database path is also tested. PGlite covers sequential SQL/mail behaviour. CI separately provisions PostgreSQL17 for cross-connection locking tests. `test:worker` exercises a closed local Workers build. None substitutes for live delivery, deployed free-tier CPU measurements or the security readiness review.
 

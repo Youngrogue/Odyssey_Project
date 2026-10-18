@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 const bindings = vi.hoisted(() => ({
-  value: undefined as undefined | { HYPERDRIVE?: { connectionString: string } },
+  value: undefined as undefined | { DATABASE_URL?: string },
 }));
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: () => {
@@ -12,11 +12,25 @@ const clients = vi.hoisted(() => ({
   instances: [] as {
     connect: ReturnType<typeof vi.fn>;
     end: ReturnType<typeof vi.fn>;
+    transport: string;
   }[],
   fail: false,
 }));
 vi.mock("pg", () => ({
   Client: class {
+    connect = vi.fn(async () => {
+      if (clients.fail) throw Error("secret connection details");
+    });
+    end = vi.fn(async () => {});
+    transport = "tcp";
+    constructor() {
+      clients.instances.push(this);
+    }
+  },
+}));
+vi.mock("@neondatabase/serverless", () => ({
+  Client: class {
+    transport = "websocket";
     connect = vi.fn(async () => {
       if (clients.fail) throw Error("secret connection details");
     });
@@ -44,25 +58,52 @@ describe("Workers database transport", () => {
   it("uses the current binding and creates and closes a separate client per invocation", async () => {
     vi.stubEnv("DATABASE_URL", "postgresql://local:unused@localhost/local");
     bindings.value = {
-      HYPERDRIVE: {
-        connectionString: "postgresql://bound:secret@hyperdrive/db",
-      },
+      DATABASE_URL:
+        "postgresql://bound:secret@ep-test.neon.tech/db?sslmode=require",
     };
-    expect(databaseConnectionString()).toContain("@hyperdrive/");
+    expect(databaseConnectionString()).toContain("@ep-test.neon.tech/");
     expect(hasDatabaseConnection()).toBe(true);
     const one = await connectWaitlist();
     const two = await connectWaitlist();
     expect(one).not.toBe(two);
+    expect(clients.instances.every((c) => c.transport === "websocket")).toBe(
+      true,
+    );
     await one.release();
     await two.release();
     expect(
       clients.instances.every((client) => client.end.mock.calls.length === 1),
     ).toBe(true);
     bindings.value = {};
-    expect(hasDatabaseConnection()).toBe(false); // No direct DB fallback inside Workers.
+    expect(hasDatabaseConnection()).toBe(false); // No ambient process fallback inside Workers.
+    await expect(connectWaitlist()).rejects.toThrow("Database unavailable");
   });
-  it("cleans up connection failures without exposing the URL", async () => {
+  it("retains TCP only for local PostgreSQL development", async () => {
     vi.stubEnv("DATABASE_URL", "postgresql://local:secret@localhost/local");
+    const client = await connectWaitlist();
+    expect(clients.instances[0].transport).toBe("tcp");
+    await client.release();
+    expect(clients.instances[0].end).toHaveBeenCalledOnce();
+  });
+  it("fails closed for invalid or insecure Worker database settings", async () => {
+    for (const value of [
+      "not-a-url",
+      "postgresql://user:secret@other.example/db?sslmode=require",
+      "postgresql://user:secret@ep-test.neon.tech/db?sslmode=disable",
+      "postgresql://user:secret@ep-test.neon.tech/db?sslmode=require&host=other.example",
+      "postgresql://user:secret@ep-test.neon.tech/db?sslmode=require&sslmode=disable",
+    ]) {
+      bindings.value = { DATABASE_URL: value };
+      expect(hasDatabaseConnection()).toBe(false);
+      await expect(connectWaitlist()).rejects.toThrow("Database unavailable");
+    }
+    expect(clients.instances).toHaveLength(0);
+  });
+  it("cleans up Neon connection failures without exposing the URL", async () => {
+    bindings.value = {
+      DATABASE_URL:
+        "postgresql://bound:secret@ep-test.neon.tech/db?sslmode=require",
+    };
     clients.fail = true;
     await expect(connectWaitlist()).rejects.toThrow("Database unavailable");
     expect(clients.instances[0].end).toHaveBeenCalledOnce();

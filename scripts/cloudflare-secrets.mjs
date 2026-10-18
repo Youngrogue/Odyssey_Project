@@ -5,6 +5,7 @@ if (!["landing", "scheduler"].includes(target))
 const names =
   target === "landing"
     ? [
+        "DATABASE_URL",
         "WAITLIST_TOKEN_SECRET",
         "CRON_SECRET",
         "RESEND_API_KEY",

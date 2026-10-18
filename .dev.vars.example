@@ -2,3 +2,6 @@
 NEXTJS_ENV=production
 WAITLIST_ENABLED=false
 APP_ORIGIN=http://127.0.0.1:43219
+
+# For intentional local Worker database testing only; use isolated Neon staging.
+DATABASE_URL=

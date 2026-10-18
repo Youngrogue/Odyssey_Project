@@ -1,0 +1,40 @@
+name: Verify Odyssey Neon staging
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: odyssey-neon-staging
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Verify direct Neon transactions on the isolated staging branch
+        run: |
+          node -e 'if (!process.env.WAITLIST_TEST_NEON_URL) process.exit(1)'
+          pnpm exec vitest run tests/neon-live.test.ts --no-file-parallelism
+        env:
+          WAITLIST_TEST_NEON_URL: ${{ secrets.DATABASE_URL }}
+      - name: Apply staging migrations and verify repeatability
+        run: |
+          pnpm db:migrate
+          pnpm db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Record scope
+        run: |
+          echo "Neon staging verified at $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Direct driver transactions, locks and additive migrations. No deployment or email sent." >> "$GITHUB_STEP_SUMMARY"

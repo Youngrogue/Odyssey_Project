@@ -27,7 +27,7 @@ export function hasMailRecovery() {
 }
 
 async function setRecoveryTimeouts(db: Queryable) {
-  // SET LOCAL follows the transaction through Hyperdrive's transaction pool.
+  // Bound lock waits and abandoned transactions on this request's connection.
   await db.query("SET LOCAL statement_timeout = '10s'");
   await db.query("SET LOCAL idle_in_transaction_session_timeout = '15s'");
   await db.query("SET LOCAL transaction_timeout = '20s'");
