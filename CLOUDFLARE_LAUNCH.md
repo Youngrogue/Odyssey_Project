@@ -2,6 +2,12 @@
 
 Updated 18 October 2026. Implements the owner's approved GitHub → Cloudflare Free landing-page plan. **Status: in progress; production collection and indexing remain closed.** No deployed SHA or working public waitlist is claimed yet.
 
+**Latest checkpoint — owner-requested pause:** read the [dependency review](LAUNCH_DEPENDENCY_REVIEW_2026-10-18.md) before resuming. Both Neon branches now have migrations `001`–`004`. Closed staging/production attempts uploaded landing Workers and bootstrapped coordinators, then failed at custom-domain attachment; runtime-secret installation/full scheduler/smoke steps were skipped. Parent-zone correction `d0e740e` passed the complete CI check job, but its deployment was cancelled before upload. `CLOUDFLARE_DEPLOY_ENABLED=false` is verified. No working public release is claimed. Earlier provisioning entries below describe the state before these attempts and are superseded where they say production migrations or Worker uploads are pending.
+
+## Resumed launch — 18 October
+
+The owner authorized pushing and continuing deployment after the dependency review. Exact-host domain conflict preflight now fails closed before migrations/uploads; required signing/email secrets are checked before an enabled release. Seven focused tests and typecheck pass. DNS inspection found no records matching Odyssey; existing website/mail records remain untouched. GitHub deployment remains disabled until dispatch; collection/indexing stay false while live acceptance is incomplete. The browser staging-access confirmation is pending; the security audit has resumed its recorded gaps. A closed public page is a reviewable deployment, not a working waitlist launch.
+
 ## Approved release
 
 | Item | Decision |
@@ -38,7 +44,7 @@ The main app, Google Sheet ingestion, catalogue publication and Quest World stay
 - [ ] Deployed Free-plan CPU/resource acceptance and sustainable Neon compute usage.
 - [ ] Completion-stage security readiness audit and final public launch.
 
-## Provisioning actually completed
+## Provisioning before the first closed deployment attempts
 
 - Cloudflare Sora account and `soralives.xyz` zone are accessible.
 - Exact `odyssey@soralives.xyz` forwarding rule is **Active**, using the already verified owner Gmail destination. Other routes/catch-all were preserved. Cloudflare recorded controlled test `ODY-20261017-01` as **Forwarded**. Gmail's separately received copy has not been verified. The test originated from the destination account; repeat from the configured sender or another authorised account, following [Cloudflare's testing guidance](https://developers.cloudflare.com/email-service/get-started/route-emails/#test-your-routing-rule).
@@ -126,6 +132,8 @@ Resend key creation is complete and independent of the transport change. Names-o
 
 ## Release sequence and stop conditions
 
+**Paused:** the ordered resume sequence in [the dependency review](LAUNCH_DEPENDENCY_REVIEW_2026-10-18.md#recommended-order-when-the-owner-resumes-implementation) takes precedence over the earlier sequence below. Reconcile partial uploads and committed schema first; do not restart from empty resources. Finish staging Access before expecting its closed smoke checks to pass, and inspect exact-host DNS conflicts before retrying domain attachment.
+
 1. Complete source checks and push the reviewed commit without secrets/generated files.
 2. Configure GitHub environment secrets and closed staging. Verify Neon migrations and direct WebSocket transactions, with runtime `DATABASE_URL` delivered only to the matching environment.
 3. Protect staging, configure sending/DNS, and execute real controlled email/referral/revocation journeys. Preserve private logs and test data isolation.
@@ -139,10 +147,10 @@ Resend key creation is complete and independent of the transport change. Names-o
 | Item | Owner | State | Evidence / next action |
 |---|---|---|---|
 | Product clarity and discovery | Unassigned | Open | Local visitor journeys tested; verify actual deployed page and working waitlist before closing |
-| Provider setup | Engineering + owner account steps | In progress | Resend domain Verified; database, application and separate sending secrets stored in GitHub. Direct Neon source and staging database/migrations verified. Full CI passed; production migrations, webhook, Access, tracking and deployed provider/suppression journeys remain. Zero Trust Free is active |
+| Provider setup | Engineering + owner account steps | Paused for dependency review | Both schemas applied; Worker uploads/bootstrap partially completed. Domain attachment failed; runtime secrets/full scheduler/smoke steps skipped. Access, webhook, tracking and deployed journeys remain. See the dependency review |
 | Deployment-token rotation | Engineering | Due before 24 October 2026 | Replace both environment tokens with equally restricted access; verify actual deployment capability without widening scope |
 | Free-tier acceptance | Engineering | Incomplete | Idle-aware source/local runtime checked; deployed CPU, Neon suspension and quota usage still required |
-| Security readiness | Engineering | Incomplete | Completion-stage audit not yet run; ordinary tests are not the audit |
+| Security readiness | Engineering | Incomplete | Read-only source audit handed off with critic coverage gaps and an unvalidated lifecycle hypothesis; remaining audit steps and required sandbox/provider validation are not passed. See the dependency review |
 | Production opening | Engineering | Blocked by release evidence | Collection/indexing false; no deployed commit recorded |
 
-Latest pushed runtime source: **`06655d9cd15d9f6a2d73a5b53bba61e2e50cef15`**. [staging verification 39115937313](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39115937313) passed; **[full CI 39115904292](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39115904292) passed**. Local targeted tests, types, builds and Worker smoke pass. Deployed commit: **not deployed**. Worker version: **not created**. Production migrations and release acceptance remain open.
+Latest pushed source: **`d0e740e0180c6c55b2a8a5e1a0ac53a79f519511`**, parent-zone configuration correction over the unchanged direct-Neon application runtime. Its [full check job passed](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39124882746); deployment was cancelled. Earlier source `304b14a` was uploaded in partial closed deployments; specific Worker versions still need reconciliation. **Both environment schemas are applied; no complete or working public release is recorded.** Runtime secrets, full scheduler, Access/email, Free acceptance and security readiness remain open. Automatic deployment is disabled at the owner's request.

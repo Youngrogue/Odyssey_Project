@@ -13,6 +13,16 @@ if (database && !isNeonDatabaseUrl(database))
 const enabled = process.env.WAITLIST_ENABLED === "true";
 if (enabled && !database) throw Error("Collection requires DATABASE_URL");
 if (
+  enabled &&
+  (!process.env.RESEND_API_KEY?.startsWith("re_") ||
+    !process.env.RESEND_WEBHOOK_SECRET?.startsWith("whsec_") ||
+    (process.env.WAITLIST_TOKEN_SECRET?.length ?? 0) < 32 ||
+    (process.env.CRON_SECRET?.length ?? 0) < 32)
+)
+  throw Error(
+    "Opening collection requires all runtime signing and mail secrets",
+  );
+if (
   target === "production" &&
   enabled &&
   process.env.RELEASE_CHECKS_PASSED !== "true"

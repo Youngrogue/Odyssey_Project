@@ -51,6 +51,27 @@ function run(script: string, target: string, env: Record<string, string> = {}) {
   });
 }
 describe("direct Neon deployment boundaries", () => {
+  it("keeps the production hostname separate and refuses incomplete opening secrets", () => {
+    const closed = run("cloudflare-config.mjs", "production");
+    expect(closed.status).toBe(0);
+    const config = JSON.parse(
+      readFileSync(join(scratch, ".cloudflare-build/landing.json"), "utf8"),
+    );
+    expect(config.routes).toEqual([
+      {
+        pattern: "odyssey.soralives.xyz",
+        custom_domain: true,
+        zone_name: "soralives.xyz",
+      },
+    ]);
+    const open = run("cloudflare-config.mjs", "production", {
+      DATABASE_URL: database,
+      WAITLIST_ENABLED: "true",
+      RELEASE_CHECKS_PASSED: "true",
+    });
+    expect(open.status).not.toBe(0);
+    expect(open.stderr).toContain("all runtime signing and mail secrets");
+  });
   it("keeps paused cleanup scheduled without serializing the database secret", () => {
     const result = run("cloudflare-config.mjs", "staging", {
       DATABASE_URL: database,

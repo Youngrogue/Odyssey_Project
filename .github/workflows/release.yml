@@ -104,6 +104,8 @@ jobs:
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
           CF_ACCESS_TEAM_DOMAIN: ${{ vars.CF_ACCESS_TEAM_DOMAIN }}
       - run: node scripts/cloudflare-config.mjs "$TARGET"
+      - name: Verify exact custom-domain changes before mutation
+        run: node scripts/cloudflare-domain-preflight.mjs
       - name: Apply additive database migrations
         if: env.DATABASE_URL != ''
         run: pnpm db:migrate
