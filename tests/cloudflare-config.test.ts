@@ -67,6 +67,13 @@ describe("direct Neon deployment boundaries", () => {
     expect(landing).not.toContain(database);
     expect(landing).not.toContain("fixture-password");
     expect(landing).not.toContain("hyperdrive");
+    expect(JSON.parse(landing).routes).toEqual([
+      {
+        pattern: "odyssey-staging.soralives.xyz",
+        custom_domain: true,
+        zone_name: "soralives.xyz",
+      },
+    ]);
     expect(JSON.parse(landing).vars.WAITLIST_ENABLED).toBe("false");
     expect(scheduler.vars).toEqual({
       SCHEDULER_ENABLED: "true",

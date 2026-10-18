@@ -49,7 +49,9 @@ config.durable_objects = {
     },
   ],
 };
-config.routes = [{ pattern: hostname, custom_domain: true }];
+config.routes = [
+  { pattern: hostname, custom_domain: true, zone_name: "soralives.xyz" },
+];
 config.vars = {
   ...config.vars,
   DEPLOYMENT_ENV: target,
