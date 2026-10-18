@@ -1,6 +1,6 @@
 # Odyssey landing — owner handover
 
-Updated 18 October 2026. **The owner authorized resuming deployment; signup collection and indexing remain closed until live checks pass.** The approved release is GitHub → Cloudflare Workers Free, with Neon and Resend. Public name: **Odyssey**; full name: **Odyssey Project**. Production destination: **https://odyssey.soralives.xyz**. Main-app development and Quest World remain separate. Read the [dependency review and safe resume order](LAUNCH_DEPENDENCY_REVIEW_2026-10-18.md) first: partial uploads exist, but there is no working public release.
+Updated 18 October 2026. **The landing page is live at https://odyssey.soralives.xyz; signup collection and indexing remain closed.** GitHub production run [39127879045](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39127879045), attempt 2, deployed source `30be319` successfully. Public/private-route checks and a Chrome review passed. Read the [current deployment and remaining launch gates](LAUNCH_DEPENDENCY_REVIEW_2026-10-18.md#current-result--public-page-is-viewable) first; earlier checkpoints below remain historical. Hosting is Cloudflare Workers Free with Neon and Resend. Main-app development and Quest World remain separate.
 
 The existing standalone repository is `Youngrogue/Odyssey_Project`. The parent V2 documents and editable media are outside it. See [launch plan and implementation record](CLOUDFLARE_LAUNCH.md) and [review checklist](LAUNCH_CHECKLIST.md).
 

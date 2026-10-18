@@ -4,6 +4,29 @@
 
 Later on 18 October, the owner asked to push and confirm when the site can be viewed. Implementation/deployment is authorized to resume within the existing Free-plan and release gates. The pause record below remains historical. The domain-conflict preflight and early secret checks are now implemented; seven targeted tests and typecheck pass. Public signup/indexing remain closed pending live acceptance. A closed public page may be deployed for review without claiming the email journey is live.
 
+### Current result — public page is viewable
+
+**https://odyssey.soralives.xyz is live with signup collection and indexing closed.** [GitHub run 39127879045, attempt 2](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39127879045), source `30be3190e007f641f1e36db1b4bc7b3daa4b3b47`, passed the complete check job and production deployment. The exact-domain preview passed, migrations reapplied, landing and scheduler deployed, four landing secrets and the scheduler signing secret installed, and live public/private-route smoke checks passed. A separate smoke run and Chrome inspection confirmed the public URL, closed signup notice, loaded hero artwork and activity → matching trophy navigation/focus.
+
+The owner approved **Workers Routes Write on `soralives.xyz`** for both deployment tokens. Both grants are saved; the original Worker pairs and 24 October expiry remain unchanged. The source guard continues to restrict changes to the exact Odyssey hostname. This resolved the 403/10084 failure below without changing database transport, DNS for other sites, paid plans or application logic.
+
+Staging owner access and the exact `/api/waitlist/webhook` exception are saved. The Resend staging webhook listens for delivered/bounced/complained events; its signing secret is stored in GitHub staging. `CF_ACCESS_TEAM_DOMAIN=tobiarogunmati.cloudflareaccess.com` is stored there. Staging CI access remains unfinished: the exposed credential was revoked immediately through the approved rotation, but GitHub requires fresh owner email verification before the replacement value can be saved. The token remains unattached to an Access policy and cannot yet access staging. The old GitHub value is therefore unusable. No public signup or test email journey is claimed.
+
+Production schedules are installed (`*/5 * * * *`, `0 3 * * *`) with mail disabled and cleanup enabled; this is installation evidence, not evidence of actual scheduled recovery or cleanup execution. Logged upload versions before secret installation: landing `1cab295f-74b1-42f1-8d27-67a0cf2039a0`, scheduler `0e0ab75d-851b-48ca-81d4-42ce284bfa5e`. Secret installation can create later versions, so these IDs must not be described as verified final active versions. Startup measurements (33ms/1ms) are not per-request CPU acceptance.
+
+**Remaining before accepting public registrations:** finish the rotated staging credential/CI policy and closed-staging smoke, verify tracking and real confirmation/welcome/referral/unsubscribe/suppression journeys, idle recovery and inbound Gmail receipt, measure deployed Free-plan resource use, pause staging mail and move the single webhook to production, then record production acceptance before enabling collection/indexing. Source security review is complete with no confirmed findings; runtime/provider acceptance remains open. Product clarity and discovery remains **Open** until the remaining deployed journeys are reviewed. Main app and game map remain separate.
+
+Automatic deployments are disabled (`CLOUDFLARE_DEPLOY_ENABLED=false`) while staging verification is unfinished. This only stops new deployment jobs; the successful production page remains running. Re-enable deliberately when dispatching the next checked staging release.
+
+### Earlier resumed checkpoint — superseded by the result above
+
+- Source and deployment safeguards are pushed through `30be3190e007f641f1e36db1b4bc7b3daa4b3b47`. Its full GitHub check job passed in [39127879045](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39127879045); deployment stopped at the domain preview before migration/upload/DNS mutation.
+- The bounded diagnostic reports HTTP **403**, Cloudflare error **10084**. Dashboard inspection confirms both deployment tokens currently grant only **Individual Workers Editor**. Cloudflare additionally requires **Workers Routes Write** for the affected zone. A change limited to `soralives.xyz`, retaining each Worker pair and the 24 October expiry, is prepared for owner approval. No broader grant or paid upgrade has been made. [Required permissions](https://developers.cloudflare.com/workers/authorization/workers/)
+- Owner-only Access application `Odyssey staging` is saved for `odyssey-staging.soralives.xyz`. This is partial protection setup: CI policy and exact webhook exception still require completion and verification.
+- A 168-hour staging CI credential was created and stored in GitHub staging. A browser response exposed its value in tool output; it is **not attached to any Access policy** and must be rotated and replaced before use. The rotation request is pending owner confirmation after automatic approval review rejected it.
+- The source security audit is complete at `30be319`: all 52 units resolved, both independent critics clean, no confirmed vulnerability. The late-suppression hypothesis was independently rejected. This establishes no source blocker for a closed preview, **not** live-provider or Free-limit acceptance. The diagnostic-only follow-up was reviewed separately from full coverage at `40241af`.
+- Automatic deployments are disabled after the diagnostic failure. Collection/indexing remain closed and no working public URL is claimed at this checkpoint.
+
 ## Outcome and pause (historical checkpoint)
 
 The owner requested a pause to review whether the domain correction could disrupt other dependencies. Implementation and deployment are paused. This review changes documentation only; it does not authorize another deployment, provider change or paid service.
@@ -62,13 +85,13 @@ Closed attempt evidence: [staging 39124395066](https://github.com/Youngrogue/Ody
 1. Reconcile the two Worker pairs, domain assignments, disabled previews, scheduler state and Neon migration ledgers against the partial-run evidence. Keep collection/indexing closed.
 2. Finish the narrowly scoped staging Access setup and its CI credentials. Prepare the exact webhook exception. Verify DNS conflicts and custom-domain token capability before changing website routing.
 3. Add/review the small deployment preflight improvements above, with generated-route assertions for both exact staging and production hosts. Re-run affected checks; keep the existing security and privacy safeguards. Do not replace the application or transport.
-4. Run one closed staging release from an identified commit. Confirm the corrected domain, HTTPS, runtime secrets, existing coordinator, scheduler installation and protected smoke checks.
-5. Configure the staging Resend webhook/signing secret, verify tracking settings and run controlled signup → confirmation → welcome → badge → referral → unsubscribe, duplicate/retry/outage/suppression tests. Verify recovery without another signup and actual incoming reply forwarding.
+4. Configure the staging Resend webhook and install its signing secret before expecting the closed-staging smoke check to pass. The webhook returns 503 without its signing/application secrets; the Access test correctly requires an unsigned request to reach the app and return 401. Preserve that assertion. Then run one closed staging release from an identified commit; confirm domain, HTTPS, runtime secrets, existing coordinator, scheduler installation and protected smoke checks. A separate closed production preview may be deployed earlier for owner design review, without opening collection.
+5. Verify tracking settings and run controlled signup → confirmation → welcome → badge → referral → unsubscribe, duplicate/retry/outage/suppression tests. Verify recovery without another signup and actual incoming reply forwarding.
 6. Complete deployed resource/idle acceptance and resolve the completion-stage security review. Keep Product clarity and discovery open until actual visitor journeys are verified.
 7. Pause staging sending and settle its test mail; configure the production webhook/secret and perform a closed production release. Recheck exact environment separation, schema revision, private-page headers, recovery/cleanup and production asset delivery.
 8. Only after recorded acceptance, enable production collection and indexing, verify the public URL and record the commit, Worker versions and deployment run. Preserve the documented pause/rollback procedures.
 
-## Decisions, recommendations and unresolved items
+## Decisions, recommendations and unresolved items at the historical pause
 
 **Confirmed:** review-only pause; Odyssey landing/waitlist/referrals remain the release scope; direct Neon without Hyperdrive; isolated staging/production; GitHub deployment; no paid services; approved contact, retention and existing product policies remain unchanged. The main application, content-planner ingestion and game map remain in their own plans.
 
@@ -80,4 +103,4 @@ The source-audit handoff contains 50 reviewed units, an unvalidated late-complai
 
 Security audit output is retained outside the Git repository at `../outputs/security-audit/odyssey-release-2026-10-18/`. Its unfinished checks and any resulting concrete correction must be reconciled before public opening; a source-review gap is not an instruction to change product policy. Product clarity and discovery: **Open**, owner unassigned; next action is the actual deployed visitor journey review.
 
-No application code, dashboard setting, DNS record, email or deployment was changed by this review. The earlier cancellation and deployment-disable action are the recorded containment measures for the owner's pause. Documentation remains local and unpushed.
+No application code, dashboard setting, DNS record, email or deployment was changed by the original paused review. Its documentation was subsequently pushed in `40241af`. Later authorized changes and evidence are recorded in the resumed checkpoint above.
