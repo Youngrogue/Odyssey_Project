@@ -1,6 +1,30 @@
 import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
+// Report only fixed field names and numeric codes, never provider text or tokens.
+export function domainResponseSummary(status, payload) {
+  const keys = ["added", "removed", "updated", "conflicting"];
+  return JSON.stringify({
+    status: Number.isInteger(status) ? status : null,
+    success: payload?.success === true,
+    errorCodes: Array.isArray(payload?.errors)
+      ? payload.errors
+          .flatMap((error) =>
+            Number.isSafeInteger(error?.code) ? [error.code] : [],
+          )
+          .slice(0, 10)
+      : [],
+    counts: Object.fromEntries(
+      keys.map((key) => [
+        key,
+        Array.isArray(payload?.result?.[key])
+          ? payload.result[key].length
+          : null,
+      ]),
+    ),
+  });
+}
+
 export function assertSafeDomainChangeset(payload, hostname) {
   const result = payload?.result;
   if (
@@ -56,9 +80,16 @@ async function main() {
       signal: AbortSignal.timeout(15000),
     },
   );
-  if (!response.ok)
+  const payload = await response.json().catch(() => null);
+  try {
+    if (!response.ok) throw Error("Provider rejected domain preview");
+    assertSafeDomainChangeset(payload, hostname);
+  } catch {
+    console.error(
+      `Domain preview: ${domainResponseSummary(response.status, payload)}`,
+    );
     throw Error("Cannot verify custom-domain permissions or conflicts");
-  assertSafeDomainChangeset(await response.json(), hostname);
+  }
   console.log(
     "Exact Odyssey domain changes verified; existing settings preserved.",
   );
