@@ -1,5 +1,7 @@
 # Odyssey — landing review and launch checklist
 
+**18 October verified design release:** [Live Odyssey](https://odyssey.soralives.xyz) now serves `d6f616a` from [successful production run 39132258936](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39132258936). All 35 browser checks and the full release pipeline pass; desktop/mobile Chrome verification confirms the new actions and layout. Automatic deployment is paused again.
+
 **18 October design follow-up:** [Design, copy and visitor-flow review](DESIGN_REVIEW_2026-10-18.md) records the responsive corrections, useful Bucket-list action, FAQ navigation and removal of visible generator credit. Protected staging now passes [run 39130578260](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39130578260), including the rotated CI credential and signed-webhook boundary. Collection/indexing remain closed; actual mail/forwarding/recovery and Free-resource acceptance remain open. This update supersedes older unfinished-staging statements below.
 
 Updated 18 October 2026. Compare the rendered page against the approved Solar Play/isometric direction and the product decisions below. The Stitch app exports are references for the future app; this landing is a prelaunch landing page, not a copy of every app screen.

@@ -60,3 +60,11 @@ These measurements describe one viewport/state, not a promise that every expande
 - **Owner review:** check the new desktop density and mobile layout on personal devices. Sound/footage publication rights and real-device screen-reader/keyboard behaviour still need their respective owner/manual acceptance.
 - **Future optimisation recommendation:** after legitimate traffic exists, compare activity saves and successful confirmations; do not invent conversion lift or add third-party analytics without a privacy decision.
 - **Product clarity and discovery: Open.** The landing’s local discovery path is verified; the full deployed email and upcoming application journeys are not yet accepted. Main-app planning is unchanged.
+
+## Deployed result
+
+[Production release 39132258936](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39132258936) succeeded for `d6f616aca30216b95ae4a2e2c6d50a3540eed678`. The complete check job passed types, unit/real-PostgreSQL tests, repeated migrations, all 35 browser scenarios, Next/OpenNext builds and both Worker harnesses. Deployment and public/private-route smoke checks passed.
+
+Live Chrome verification confirmed the new hero and FAQ link at 1440×606; the 390×844 page has no horizontal overflow, its menu closes after FAQ navigation, and **Start my Bucket list** focuses `#new-quest`. The visible maker credit is absent. Desktop and mobile captures are saved as `live-desktop.png` and `live-mobile.png` in the evidence directory above. Temporary viewport overrides were reset.
+
+Public registrations and indexing remain disabled. Automatic deployment was restored to `false` after this deliberate release. No paid plan or provider allowance was changed. The prepared live-email acceptance harness remains local and unrun; it is deliberately excluded from this design release.
