@@ -47,9 +47,9 @@ export default async function Confirm({
       ) : (
         <>
           <p>
-            Choose the button below to confirm that you want meaningful project
-            updates and a launch notification. Opening this page alone does not
-            subscribe you.
+            {valid
+              ? "Choose the button below to confirm that you want meaningful project updates and a launch notification. Opening this page alone does not subscribe you."
+              : "Open the confirmation link in your email, or request a new one below. Opening this page alone does not subscribe you."}
           </p>
           {valid && (
             <form action="/api/waitlist/confirm" method="post">

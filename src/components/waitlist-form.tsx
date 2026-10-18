@@ -184,8 +184,8 @@ export function WaitlistForm() {
           updates, plus your own invite link to share. Delivery may take a few
           minutes.
         </p>
-        <a className="text-link" href="#try-something">
-          Find something you’d love to try <Icon name="arrow" />
+        <a className="text-link" href="#activity-ideas">
+          Browse ideas for my list <Icon name="arrow" />
         </a>
       </div>
     );
@@ -357,9 +357,8 @@ export function WaitlistForm() {
       <p id={`${id}-notice`} className="form-note" aria-live="polite">
         {enabled ? (
           <>
-            By joining, you request a confirmation email, a welcome, project
-            updates and a launch notification. Unsubscribe any time. Read our{" "}
-            <a href="/privacy">privacy notice</a>.
+            We’ll email a confirmation, welcome, project updates and launch
+            news. Unsubscribe any time. <a href="/privacy">Privacy notice</a>.
           </>
         ) : (
           <>

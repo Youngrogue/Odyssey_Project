@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 const preview = "http://127.0.0.1:43217";
-test("mobile discovery has keyboard controls and a complete View all alternative", async ({ page }) => {
+test("mobile discovery has keyboard controls and a complete View all alternative", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 320, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
@@ -14,7 +16,11 @@ test("mobile discovery has keyboard controls and a complete View all alternative
   await page.getByRole("button", { name: "View all 18 ideas" }).click();
   await expect(page.locator(".idea-card")).toHaveCount(18);
   await expect(controls).toHaveCount(0);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
 });
 test("ideas filter, detail dialog, save, custom recurrence, completion, persistence and removal", async ({
   page,
@@ -174,7 +180,7 @@ test("isometric community selection and opened activity detail remain accessible
   await page.goto("/");
   const games = page.locator(".community-card").nth(1);
   await games
-    .getByRole("button", { name: "Find your people", exact: true })
+    .getByRole("button", { name: "See shared interests", exact: true })
     .click();
   await expect(games.locator(".community-leads")).toBeVisible();
   await expect(page.locator("#community-paths-0")).not.toBeVisible();

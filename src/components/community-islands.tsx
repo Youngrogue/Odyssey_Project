@@ -279,7 +279,7 @@ export function CommunityIsland({
       type="button"
       aria-expanded={active}
       aria-controls={controls}
-      aria-label={`${active ? "Close" : "Explore"} ${label.toLowerCase()} communities`}
+      aria-label={`${active ? "Hide" : "Show"} ${label.toLowerCase()} interests`}
       onClick={onToggle}
     >
       <span className="island-plate-label">

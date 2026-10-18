@@ -1,4 +1,5 @@
 import { Brand } from "@/components/brand";
+import { SiteNavigation } from "@/components/site-navigation";
 import { Icon } from "@/components/icons";
 import { IsometricWorld } from "@/components/isometric-world";
 import { Teaser } from "@/components/teaser";
@@ -58,14 +59,7 @@ export default function HomePage() {
       </a>
       <header className="site-header shell">
         <Brand />
-        <nav aria-label="Main navigation">
-          <a href="#try-something">The ideas</a>
-          <a href="#find-your-people">The people</a>
-          <a className="header-cta" href="#waitlist">
-            Join the waitlist
-            <Icon name="arrowUp" />
-          </a>
-        </nav>
+        <SiteNavigation />
       </header>
       <main id="main">
         <section className="hero shell" aria-labelledby="hero-title">
@@ -75,27 +69,29 @@ export default function HomePage() {
               YOUR NEXT CHAPTER · COMING SOON
             </p>
             <h1 id="hero-title">
-              A little
-              <br />
-              curiosity.
+              A little curiosity.
               <br />
               <span className="highlight-text">A lot more life.</span>
             </h1>
             <p className="hero-description">
-              Discover things to try, people to meet, and places to explore.
-              Turn “we should” into “we did”, with a Bucket list for all the
-              things you’ve been meaning to do.
+              Salsa nights, new cuisines, a quiet game at home. Discover things
+              to do and people to do them with. Start with your own Bucket list.
             </p>
             <p className="hero-tagline">
               At home or out in the world. It all counts.
             </p>
             <div id="waitlist" className="waitlist-anchor">
-              <p className="signup-intro">Get in early. Bring your people.</p>
+              <p className="signup-intro">
+                Launch updates. A Founding Explorer badge. Your next first.
+              </p>
               <WaitlistForm />
             </div>
-            <a className="hero-explore text-link" href="#try-something">
-              Find something you’d love to try <Icon name="arrow" />
-            </a>
+            <div className="hero-first-action">
+              <a className="hero-explore text-link" href="#new-quest">
+                Start my Bucket list <Icon name="arrow" />
+              </a>
+              <span>No account needed</span>
+            </div>
           </div>
           <IsometricWorld />
         </section>

@@ -1,5 +1,7 @@
 # Odyssey landing — owner handover
 
+**18 October design follow-up:** [Design, copy and visitor-flow review](DESIGN_REVIEW_2026-10-18.md) records the responsive corrections, useful Bucket-list action, FAQ navigation and removal of visible generator credit. Protected staging now passes [run 39130578260](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39130578260), including the rotated CI credential and signed-webhook boundary. Collection/indexing remain closed; actual mail/forwarding/recovery and Free-resource acceptance remain open. This update supersedes older unfinished-staging statements below.
+
 Updated 18 October 2026. **The landing page is live at https://odyssey.soralives.xyz; signup collection and indexing remain closed.** GitHub production run [39127879045](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39127879045), attempt 2, deployed source `30be319` successfully. Public/private-route checks and a Chrome review passed. Read the [current deployment and remaining launch gates](LAUNCH_DEPENDENCY_REVIEW_2026-10-18.md#current-result--public-page-is-viewable) first; earlier checkpoints below remain historical. Hosting is Cloudflare Workers Free with Neon and Resend. Main-app development and Quest World remain separate.
 
 The existing standalone repository is `Youngrogue/Odyssey_Project`. The parent V2 documents and editable media are outside it. See [launch plan and implementation record](CLOUDFLARE_LAUNCH.md) and [review checklist](LAUNCH_CHECKLIST.md).

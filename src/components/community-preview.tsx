@@ -43,7 +43,7 @@ const communities = [
 ];
 
 export function CommunityPreview() {
-  const [open, setOpen] = useState<number | null>(0);
+  const [open, setOpen] = useState<number | null>(null);
   const toggle = (index: number) =>
     setOpen((current) => (current === index ? null : index));
   return (
@@ -61,9 +61,8 @@ export function CommunityPreview() {
             Better company.
           </h2>
           <p>
-            Discover communities around what you enjoy.
-            <br />
-            Join in when it feels right for you.
+            Find the interests that bring you together. Odyssey will help you
+            discover communities around them when the app launches.
           </p>
         </div>
       </div>
@@ -88,7 +87,7 @@ export function CommunityPreview() {
               aria-controls={`community-paths-${i}`}
               onClick={() => toggle(i)}
             >
-              {open === i ? "Close this circle" : "Find your people"}
+              {open === i ? "Hide shared interests" : "See shared interests"}
               <Icon name={open === i ? "minus" : "plus"} />
             </button>
             <div
@@ -105,7 +104,7 @@ export function CommunityPreview() {
                   <li key={interest}>{interest}</li>
                 ))}
               </ul>
-              <a href="#try-something">
+              <a href="#activity-ideas">
                 {c.quest}
                 <Icon name="arrow" />
               </a>
@@ -118,14 +117,6 @@ export function CommunityPreview() {
           Prefer your own company? Solo, home and online activities belong here
           too.
         </p>
-        <a
-          className="iso-glow-credit"
-          href="https://iso-glow.vercel.app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Made with ISO-GLOW ↗
-        </a>
       </div>
     </section>
   );

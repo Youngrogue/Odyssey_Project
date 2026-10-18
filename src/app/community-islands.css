@@ -212,13 +212,6 @@
 .community-bottom-line .community-footnote {
   margin-top: 0;
 }
-.iso-glow-credit {
-  font-size: 11px;
-  color: var(--muted);
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-}
 @media (max-width: 800px) {
   .community-island {
     max-width: 440px;

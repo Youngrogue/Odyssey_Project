@@ -363,8 +363,8 @@ export function DiscoveryPlayground() {
         </div>
         <div className="discovery-foot">
           <p>
-            Just a taste of what’s possible. These are activity ideas, not live
-            events or bookings.
+            Save an idea now. Discover places and communities when Odyssey
+            launches.
           </p>
           {filtered.length > 6 && (
             <button

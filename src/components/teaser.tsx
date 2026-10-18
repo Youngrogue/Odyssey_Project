@@ -106,7 +106,7 @@ export function Teaser({ film = "loop" }: { film?: "loop" | "launch" }) {
             <span>
               {title}
               <span className="play-duration">
-                CONCEPT FILM · {launch ? "00:20" : "00:40"}
+                ODYSSEY FILM · {launch ? "00:20" : "00:40"}
               </span>
             </span>
           </span>

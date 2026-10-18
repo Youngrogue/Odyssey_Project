@@ -6,6 +6,7 @@ import "./globals.css";
 import "./landing-expansion.css";
 import "./community-islands.css";
 import "./rewards-preview.css";
+import "./landing-refinements.css";
 
 const outfit = localFont({
   src: "../../public/fonts/outfit-variable.ttf",
