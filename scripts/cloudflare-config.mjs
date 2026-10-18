@@ -31,12 +31,23 @@ const hostname =
   target === "production"
     ? "odyssey.soralives.xyz"
     : "odyssey-staging.soralives.xyz";
-const { rawConfig: config } = experimental_readRawConfig({ config: "wrangler.jsonc" });
+const { rawConfig: config } = experimental_readRawConfig({
+  config: "wrangler.jsonc",
+});
 config.name = name;
 config.account_id = account;
 config.main = "../.open-next/worker.js";
 config.assets.directory = "../.open-next/assets";
 config.services[0].service = name;
+config.durable_objects = {
+  bindings: [
+    {
+      name: "MAIL_RECOVERY",
+      class_name: "MailRecovery",
+      script_name: `${name}-scheduler`,
+    },
+  ],
+};
 config.routes = [{ pattern: hostname, custom_domain: true }];
 config.vars = {
   ...config.vars,
@@ -55,7 +66,9 @@ await writeFile(
   ".cloudflare-build/landing.json",
   JSON.stringify(config, null, 2) + "\n",
 );
-const { rawConfig: scheduler } = experimental_readRawConfig({ config: "cloudflare/scheduler.wrangler.jsonc" });
+const { rawConfig: scheduler } = experimental_readRawConfig({
+  config: "cloudflare/scheduler.wrangler.jsonc",
+});
 scheduler.name = `${name}-scheduler`;
 scheduler.account_id = account;
 scheduler.main = "../cloudflare/scheduler.ts";
@@ -69,6 +82,21 @@ scheduler.triggers.crons = scheduled ? ["*/5 * * * *", "0 3 * * *"] : [];
 await writeFile(
   ".cloudflare-build/scheduler.json",
   JSON.stringify(scheduler, null, 2) + "\n",
+);
+// Only used if this scheduler has never been deployed. It establishes the
+// cross-script Durable Object target without activating schedules or collection.
+await writeFile(
+  ".cloudflare-build/scheduler-bootstrap.json",
+  JSON.stringify(
+    {
+      ...scheduler,
+      services: [],
+      vars: { SCHEDULER_ENABLED: "false", MAIL_ENABLED: "false" },
+      triggers: { crons: [] },
+    },
+    null,
+    2,
+  ) + "\n",
 );
 console.log(
   `Prepared ${target}; collection ${enabled ? "enabled" : "closed"}; schedules ${scheduled ? "enabled" : "disabled"}.`,

@@ -8,6 +8,7 @@ import {
 import { digest, seal, token } from "./security";
 import { waitlistNotice } from "../waitlist/notice";
 import { randomBytes } from "node:crypto";
+import { armMailRecovery, beginMailTransaction } from "./recovery";
 export async function daily(db: Queryable, key: string, limit: number) {
   const r = await db.query(
     `INSERT INTO waitlist_daily_counts(key_hash) VALUES($1) ON CONFLICT(key_hash,day) DO UPDATE SET attempts=waitlist_daily_counts.attempts+1 RETURNING attempts`,
@@ -92,6 +93,7 @@ async function queueConfirmation(
   unsub: string,
 ) {
   if (!(await daily(db, digest(secret, "confirmation-day", email), 3))) return;
+  await armMailRecovery(db);
   await db.query(
     `INSERT INTO waitlist_unsubscribe_tokens(token_hash,signup_id) VALUES($1,$2) ON CONFLICT DO NOTHING`,
     [digest(secret, "unsubscribe", unsub), row.id],
@@ -122,7 +124,7 @@ export async function resend(
   db: Queryable,
   input: { email: string; secret: string; ip: string },
 ) {
-  await db.query("BEGIN");
+  await beginMailTransaction(db);
   try {
     const a = await charge(db, hash(input.secret, "rate-ip", input.ip), 20),
       b = await charge(db, hash(input.secret, "rate-email", input.email), 5);
@@ -165,7 +167,7 @@ export async function act(
   },
 ) {
   let inviteToken: string | undefined;
-  await db.query("BEGIN");
+  await beginMailTransaction(db);
   try {
     if (!(await charge(db, hash(input.secret, "rate-action", input.ip), 40))) {
       await db.query("COMMIT");
@@ -204,6 +206,7 @@ export async function act(
       new Date(String(row.confirmation_expires_at)).getTime() > Date.now() &&
       new Date(String(row.expires_at)).getTime() > Date.now()
     ) {
+      await armMailRecovery(db);
       const unsub = token();
       inviteToken = token();
       await db.query(
@@ -250,7 +253,7 @@ export async function act(
 export async function purge(db: Queryable, batchSize = 500) {
   if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > 500)
     throw new Error("Invalid cleanup batch size");
-  await db.query("BEGIN");
+  await beginMailTransaction(db);
   try {
     await db.query(
       `DELETE FROM waitlist_signups WHERE id IN (

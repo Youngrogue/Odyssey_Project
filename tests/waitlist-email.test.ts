@@ -403,12 +403,29 @@ describe("durable email lifecycle", () => {
     ).toEqual({ state: "parked" });
     await db.close();
   });
-  it("signed bounce suppresses independently of provider acceptance race and events dedupe", async () => {
+  it("unmapped bounces retry without trusting recipients, and mapped events dedupe after send commit", async () => {
     const db = await setup();
     const event = {
       type: "email.bounced",
       data: { email_id: "provider-1", to: [input.email] },
     };
+    await expect(applyEvent(db, "event-1", event, secret)).rejects.toThrow(
+      "Unmapped provider event",
+    );
+    expect(
+      (await db.query("SELECT count(*)::int AS n FROM waitlist_suppressions"))
+        .rows,
+    ).toEqual([{ n: 0 }]);
+    expect(
+      (
+        await db.query(
+          "SELECT count(*)::int AS n FROM waitlist_provider_events",
+        )
+      ).rows,
+    ).toEqual([{ n: 0 }]);
+    await db.query(
+      "UPDATE waitlist_outbox SET state='sent',provider_id='provider-1'",
+    );
     await applyEvent(db, "event-1", event, secret);
     await applyEvent(db, "event-1", event, secret);
     await applyEvent(
@@ -436,6 +453,52 @@ describe("durable email lifecycle", () => {
       ).rows[0],
     ).toEqual({ n: 0 });
     await db.close();
+  });
+  it("foreign project events cannot suppress the same recipient and recipient fields cannot select another subscriber", async () => {
+    const db = await setup();
+    try {
+      await saveSignup(db, { ...input, email: "other@example.com" });
+      await expect(
+        applyEvent(
+          db,
+          "foreign-event",
+          {
+            type: "email.complained",
+            data: { email_id: "other-project-id", to: [input.email] },
+          },
+          secret,
+        ),
+      ).rejects.toThrow("Unmapped provider event");
+      expect(
+        (await db.query("SELECT count(*)::int AS n FROM waitlist_suppressions"))
+          .rows,
+      ).toEqual([{ n: 0 }]);
+      await db.query(
+        "UPDATE waitlist_outbox SET provider_id='owned-provider-id',state='sent' WHERE signup_id=(SELECT id FROM waitlist_signups WHERE email=$1)",
+        [input.email],
+      );
+      await applyEvent(
+        db,
+        "owned-event",
+        {
+          type: "email.bounced",
+          data: { email_id: "owned-provider-id", to: ["other@example.com"] },
+        },
+        secret,
+      );
+      expect(
+        (
+          await db.query(
+            "SELECT email,state FROM waitlist_signups ORDER BY email",
+          )
+        ).rows,
+      ).toEqual([
+        { email: "other@example.com", state: "pending" },
+        { email: input.email, state: "suppressed" },
+      ]);
+    } finally {
+      await db.close();
+    }
   });
   it("verifies raw signatures, rejects forgery and stale replay", () => {
     const webhookSecret = "whsec_" + Buffer.from(secret).toString("base64"),

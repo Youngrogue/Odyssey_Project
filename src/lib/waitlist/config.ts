@@ -1,5 +1,6 @@
 import { TRUSTED_IP_HEADERS, type TrustedIpHeader } from "./validation";
 import { hasDatabaseConnection } from "./connection";
+import { hasMailRecovery } from "../email/recovery";
 
 export type PublicPrivacyConfig = {
   operatorName: string;
@@ -72,7 +73,7 @@ export function isWaitlistEnabled(): boolean {
     !TRUSTED_IP_HEADERS.includes(trustedHeader as TrustedIpHeader)
   )
     return false;
-  return hasDatabaseConnection();
+  return hasDatabaseConnection() && hasMailRecovery();
 }
 
 export function getWaitlistRuntimeConfig() {

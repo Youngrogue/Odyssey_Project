@@ -1,39 +1,57 @@
 import assert from "node:assert/strict";
-const target = process.argv[2];
-const origin =
-  target === "production"
-    ? "https://odyssey.soralives.xyz"
-    : target === "staging"
-      ? "https://odyssey-staging.soralives.xyz"
-      : target;
-const url = new URL(origin);
-if (!["https:", "http:"].includes(url.protocol))
-  throw Error("Invalid smoke-test origin");
-const request = (path) =>
-  fetch(`${origin}${path}`, {
-    redirect: "manual",
-    signal: AbortSignal.timeout(20000),
-  });
-const home = await request("/");
-assert.equal(home.status, 200, "Homepage");
-assert.match(await home.text(), /A lot more life/);
-const status = await request("/api/waitlist/status");
-assert.equal(status.status, 200, "Status endpoint");
-assert.match(status.headers.get("cache-control") ?? "", /no-store/);
-const data = await status.json();
-assert.deepEqual(Object.keys(data), ["enabled"]);
-assert.equal(data.enabled, process.env.WAITLIST_ENABLED === "true");
-for (const path of [
-  "/waitlist/confirm",
-  "/waitlist/unsubscribe",
-  "/waitlist/invite",
-]) {
-  const result = await request(path);
-  assert.equal(result.status, 200, path);
-  assert.match(result.headers.get("cache-control") ?? "", /no-store/, path);
-  assert.equal(result.headers.get("referrer-policy"), "no-referrer", path);
-  assert.match(result.headers.get("x-robots-tag") ?? "", /noindex/, path);
+import { stagingHeaders, verifyStagingAccess } from "./release-access.mjs";
+async function main() {
+  const target = process.argv[2];
+  const origin =
+    target === "production"
+      ? "https://odyssey.soralives.xyz"
+      : target === "staging"
+        ? "https://odyssey-staging.soralives.xyz"
+        : target;
+  const url = new URL(origin);
+  if (!["https:", "http:"].includes(url.protocol))
+    throw Error("Invalid smoke-test origin");
+  const request = (path) =>
+    fetch(`${origin}${path}`, {
+      headers: stagingHeaders(target),
+      redirect: "manual",
+      signal: AbortSignal.timeout(20000),
+    });
+  if (target === "staging") {
+    await verifyStagingAccess({
+      expectedEnabled: process.env.WAITLIST_ENABLED === "true",
+    });
+  }
+  const home = await request("/");
+  assert.equal(home.status, 200, "Homepage");
+  assert.match(await home.text(), /A lot more life/);
+  const status = await request("/api/waitlist/status");
+  assert.equal(status.status, 200, "Status endpoint");
+  assert.match(status.headers.get("cache-control") ?? "", /no-store/);
+  const data = await status.json();
+  assert.deepEqual(Object.keys(data), ["enabled"]);
+  assert.equal(data.enabled, process.env.WAITLIST_ENABLED === "true");
+  for (const path of [
+    "/waitlist/confirm",
+    "/waitlist/unsubscribe",
+    "/waitlist/invite",
+  ]) {
+    const result = await request(path);
+    assert.equal(result.status, 200, path);
+    assert.match(result.headers.get("cache-control") ?? "", /no-store/, path);
+    assert.equal(result.headers.get("referrer-policy"), "no-referrer", path);
+    assert.match(result.headers.get("x-robots-tag") ?? "", /noindex/, path);
+  }
+  console.log(
+    "Public availability and private-route headers verified. This does not verify delivery or CPU limits.",
+  );
 }
-console.log(
-  "Public availability and private-route headers verified. This does not verify delivery or CPU limits.",
-);
+
+try {
+  await main();
+} catch {
+  console.error(
+    "Deployment smoke check failed. Review the deployment and Access configuration privately; no provider response or credentials are logged.",
+  );
+  process.exitCode = 1;
+}

@@ -1,13 +1,14 @@
 import { lockAddress } from "./locking";
 import type { Queryable } from "../waitlist/store";
 import { digest } from "./security";
+import { armMailRecovery, beginMailTransaction } from "./recovery";
 export async function applyEvent(
   db: Queryable,
   id: string,
   event: { type: string; data: { email_id?: string; to?: string[] } },
   secret: string,
 ) {
-  await db.query("BEGIN");
+  await beginMailTransaction(db);
   try {
     const inserted = await db.query(
       `INSERT INTO waitlist_provider_events(id,provider_id,event_type) VALUES($1,$2,$3) ON CONFLICT DO NOTHING RETURNING id`,
@@ -22,10 +23,9 @@ export async function applyEvent(
         `SELECT s.email FROM waitlist_signups s JOIN waitlist_outbox o ON o.signup_id=s.id WHERE o.provider_id=$1`,
         [event.data.email_id ?? ""],
       );
-      const emails = new Set([
-        ...(event.data.to ?? []),
-        ...mapped.rows.map((r) => String(r.email)),
-      ]);
+      // Resend webhooks may cover other projects in the same account. Only this
+      // database's accepted provider IDs authorize changes to its subscribers.
+      const emails = new Set(mapped.rows.map((r) => String(r.email)));
       if (!emails.size)
         throw new Error("Unmapped provider event; retry after send commit");
       const normalizedEmails = [
@@ -48,11 +48,15 @@ export async function applyEvent(
             [row.id],
           );
       }
-    } else if (event.type === "email.delivered")
+    } else if (event.type === "email.delivered") {
+      // A delivery can precede provider_id's commit in the sender. Preserve a
+      // durable reconciliation wake-up even if neither request survives.
+      await armMailRecovery(db);
       await db.query(
         `UPDATE waitlist_outbox SET delivered_at=now() WHERE provider_id=$1`,
         [event.data.email_id ?? ""],
       );
+    }
     await db.query("COMMIT");
   } catch (e) {
     await db.query("ROLLBACK");

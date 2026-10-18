@@ -1,3 +1,4 @@
+import { beginMailTransaction } from "../email/recovery";
 import { enroll } from "../email/lifecycle";
 import { createHmac, randomBytes } from "node:crypto";
 import type { CityId, InterestId } from "./validation";
@@ -48,7 +49,7 @@ export async function saveSignup(
   },
 ): Promise<{ token: string }> {
   const token = randomBytes(32).toString("base64url");
-  await db.query("BEGIN");
+  await beginMailTransaction(db);
   try {
     const ipKey = hash(input.secret, "rate-ip", input.ip);
     const emailKey = hash(input.secret, "rate-email", input.email);
@@ -79,7 +80,7 @@ export async function savePreferences(
     interests: InterestId[];
   },
 ): Promise<void> {
-  await db.query("BEGIN");
+  await beginMailTransaction(db);
   try {
     const allowed = await charge(
       db,

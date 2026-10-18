@@ -59,6 +59,7 @@ jobs:
         env:
           PLAYWRIGHT_USE_CHROMIUM: "true"
       - run: pnpm cf:build
+      - run: pnpm test:recovery-worker
       - run: pnpm test:worker
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -96,12 +97,21 @@ jobs:
           node-version: "24"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Verify staging access before opening collection
+        if: env.TARGET == 'staging' && env.WAITLIST_ENABLED == 'true'
+        run: node scripts/verify-staging-access.mjs
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          CF_ACCESS_TEAM_DOMAIN: ${{ vars.CF_ACCESS_TEAM_DOMAIN }}
       - run: node scripts/cloudflare-config.mjs "$TARGET"
       - name: Apply additive database migrations
         if: env.DATABASE_URL != ''
         run: pnpm db:migrate
       - name: Build without runtime secrets
         run: node scripts/cloudflare-build.mjs "$TARGET"
+      - name: Bootstrap the private coordinator only if absent
+        run: node scripts/cloudflare-bootstrap.mjs
       - name: Deploy landing
         run: pnpm exec opennextjs-cloudflare deploy --config .cloudflare-build/landing.json
       - run: node scripts/cloudflare-secrets.mjs landing
@@ -110,6 +120,10 @@ jobs:
       - run: node scripts/cloudflare-secrets.mjs scheduler
       - name: Verify public and private routes
         run: node scripts/smoke-deployment.mjs "$TARGET"
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          CF_ACCESS_TEAM_DOMAIN: ${{ vars.CF_ACCESS_TEAM_DOMAIN }}
       - name: Record revision
         run: |
           echo "Deployed commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"

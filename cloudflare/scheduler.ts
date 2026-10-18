@@ -1,14 +1,19 @@
-interface SchedulerEnv {
+import {
+  recoveryStub,
+  validDueAt,
+  validRecoveryState,
+  type RecoveryNamespace,
+} from "./mail-recovery";
+export { MailRecovery } from "./mail-recovery";
+export interface SchedulerEnv {
   LANDING: { fetch(request: Request): Promise<Response> };
+  MAIL_RECOVERY: RecoveryNamespace;
   CRON_SECRET?: string;
   SCHEDULER_ENABLED?: string;
   MAIL_ENABLED?: string;
 }
-interface Schedule {
+export interface Schedule {
   cron: string;
-}
-interface Context {
-  waitUntil(promise: Promise<unknown>): void;
 }
 
 export async function runScheduled(event: Schedule, env: SchedulerEnv) {
@@ -23,6 +28,21 @@ export async function runScheduled(event: Schedule, env: SchedulerEnv) {
         : null;
   if (!path) throw new Error("Unknown schedule");
   if (path === "cron" && env.MAIL_ENABLED !== "true") return;
+  const recovery = path === "cron" ? recoveryStub(env.MAIL_RECOVERY) : null;
+  let revision: number | undefined;
+  if (recovery) {
+    const response = await recovery.fetch(
+      new Request("https://mail-recovery.internal/state", {
+        signal: AbortSignal.timeout(3000),
+      }),
+    );
+    if (!response.ok) throw new Error("Mail recovery unavailable");
+    const state: unknown = await response.json();
+    if (!validRecoveryState(state))
+      throw new Error("Invalid mail recovery state");
+    if (state.dueAt === null || state.dueAt > Date.now()) return;
+    revision = state.revision;
+  }
   for (let batch = 0; batch < (path === "purge" ? 3 : 1); batch++) {
     const response = await env.LANDING.fetch(
       new Request(`https://odyssey.internal/api/waitlist/${path}`, {
@@ -32,7 +52,22 @@ export async function runScheduled(event: Schedule, env: SchedulerEnv) {
     );
     if (!response.ok)
       throw new Error(`Scheduled ${path} failed (${response.status})`);
-    if (path !== "purge") return;
+    if (path === "cron") {
+      const result = (await response.json()) as { dueAt?: unknown };
+      if (!validDueAt(result.dueAt))
+        throw new Error("Invalid mail recovery result");
+      // Use the original revision. A producer committed after the SQL projection
+      // must win over this stale result, including a delayed retry of this RPC.
+      const projected = await recovery!.fetch(
+        new Request("https://mail-recovery.internal/project", {
+          method: "POST",
+          body: JSON.stringify({ revision, dueAt: result.dueAt }),
+          signal: AbortSignal.timeout(3000),
+        }),
+      );
+      if (!projected.ok) throw new Error("Mail recovery projection failed");
+      return;
+    }
     const result = (await response.json()) as { remaining?: boolean };
     if (!result.remaining) return;
   }
@@ -40,7 +75,11 @@ export async function runScheduled(event: Schedule, env: SchedulerEnv) {
 }
 
 export default {
-  scheduled(event: Schedule, env: SchedulerEnv, ctx: Context) {
+  scheduled(
+    event: Schedule,
+    env: SchedulerEnv,
+    ctx: { waitUntil(promise: Promise<unknown>): void },
+  ) {
     ctx.waitUntil(runScheduled(event, env));
   },
   fetch() {

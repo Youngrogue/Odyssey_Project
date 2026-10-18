@@ -14,6 +14,7 @@ import {
 import { act, resend, purge } from "./lifecycle";
 import { drain } from "./worker";
 import { inviteCookie } from "../waitlist/referrals";
+import { nextMailRecovery } from "./recovery";
 export const result = (status = 200) =>
   Response.json(
     { ok: status === 200 },
@@ -184,11 +185,22 @@ export async function operatorHandler(
             },
           },
         );
-      } else await drain(db, config!);
+      } else {
+        await drain(db, config!);
+        const dueAt = await nextMailRecovery(db, config!.dailyBudget);
+        return Response.json(
+          { ok: true, dueAt },
+          {
+            headers: {
+              "Cache-Control": "no-store",
+              "Referrer-Policy": "no-referrer",
+            },
+          },
+        );
+      }
     } finally {
       await db.release();
     }
-    return result();
   } catch {
     return result(503);
   }

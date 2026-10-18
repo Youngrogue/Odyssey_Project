@@ -12,7 +12,7 @@ const url = process.env.WAITLIST_TEST_POSTGRES_URL;
 describe.skipIf(!url)(
   "two-connection local PostgreSQL suppression serialization",
   () => {
-    it("serializes both absent-row interleavings without sending to a suppressed address", async () => {
+    it("serializes mapped complaints against renewal and suppression against absent enrollment", async () => {
       const parsed = new URL(url!);
       if (!["127.0.0.1", "localhost", "[::1]"].includes(parsed.hostname))
         throw Error("Use a disposable loopback PostgreSQL database only");
@@ -56,6 +56,13 @@ describe.skipIf(!url)(
           ip: "127.0.0.1",
           retentionDays: 90,
         };
+        await saveSignup(a, input);
+        await a.query(
+          "UPDATE waitlist_outbox SET state='sent',provider_id='old-message'",
+        );
+        await a.query(
+          "UPDATE waitlist_signups SET expires_at=now()-interval '1 day'",
+        );
         await a.query("BEGIN");
         await lockAddress(a, input.secret, input.email);
         expect(await isSuppressed(a, input.secret, input.email)).toBe(false);

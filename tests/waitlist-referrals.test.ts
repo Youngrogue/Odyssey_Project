@@ -379,6 +379,9 @@ describe("private waitlist referrals", () => {
         token: (await mailTokens(db, "friend1@example.com", "welcome"))
           .unsubscribeToken,
       });
+      await db.query(
+        "UPDATE waitlist_outbox SET state='sent',provider_id='provider-friend' WHERE signup_id=(SELECT id FROM waitlist_signups WHERE email='friend2@example.com') AND kind='welcome'",
+      );
       await applyEvent(
         db,
         "bounce-1",

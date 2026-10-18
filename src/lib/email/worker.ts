@@ -1,3 +1,4 @@
+import { beginMailTransaction } from "./recovery";
 import { lockAddress, isSuppressed } from "./locking";
 import { reconcileDeliveries } from "./webhook";
 import type { Queryable } from "../waitlist/store";
@@ -27,7 +28,7 @@ export async function drain(
     if (!candidate.rows[0]) break;
     const jobId = candidate.rows[0].id;
     // Lock subscription before job throughout the bounded send. Unsubscribe/suppress serializes on this lock.
-    await db.query("BEGIN");
+    await beginMailTransaction(db);
     try {
       await lockAddress(
         db,
@@ -133,7 +134,7 @@ export async function drain(
       );
       await db.query("COMMIT");
       // Reacquire subscriber then job: revocation between intent and send cancels safely.
-      await db.query("BEGIN");
+      await beginMailTransaction(db);
       await lockAddress(db, config.tokenSecret, String(subscriber.email));
       const current = (
         await db.query(

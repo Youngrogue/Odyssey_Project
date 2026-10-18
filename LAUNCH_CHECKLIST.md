@@ -1,8 +1,8 @@
 # Odyssey — landing review and launch checklist
 
-Updated 17 October 2026. Compare the rendered page against the approved Solar Play/isometric direction and the product decisions below. The Stitch app exports are references for the future app; this landing is a prelaunch landing page, not a copy of every app screen.
+Updated 18 October 2026. Compare the rendered page against the approved Solar Play/isometric direction and the product decisions below. The Stitch app exports are references for the future app; this landing is a prelaunch landing page, not a copy of every app screen.
 
-**Current state:** approved GitHub → Cloudflare Free implementation is in progress. Neon branches and inbound forwarding are provisioned; collection remains closed. Use [the current launch record](CLOUDFLARE_LAUNCH.md) and [handover](HANDOVER.md). Earlier local results below are historical, not proof of a live release.
+**Current state:** approved GitHub → Cloudflare Free implementation is in progress. Neon branches, inbound forwarding, empty Odyssey Workers and restricted GitHub deployment tokens are provisioned. Browser access has recovered and Resend DNS records are added/read back, but sender verification remains Pending. No code version, deployment or website DNS route exists; collection remains closed. Use [the current launch record](CLOUDFLARE_LAUNCH.md) and [handover](HANDOVER.md). Earlier local results below are historical, not proof of a live release.
 
 ## 1. Compare the design with the working page
 
@@ -35,15 +35,22 @@ The boxes are for the owner's final review, not claims of owner approval. Implem
 
 Approved operator/contact/retention/budget and destinations are recorded in [CLOUDFLARE_LAUNCH](CLOUDFLARE_LAUNCH.md); do not ask for them again.
 
-- [ ] Owner completes Resend signup in the handed-off Chrome tab.
-- [ ] Provision scoped deployment access and separate GitHub environment secrets; keep credentials out of chat, Git and logs.
+- [x] Owner connects the Resend account; add the `soralives.xyz` sender-domain record and its DKIM TXT. Sending is not yet verified.
+- [x] Create four empty Odyssey Worker records with public endpoints/previews disabled; store separate seven-day Individual Workers Editor tokens as `CLOUDFLARE_API_TOKEN` in matching `main`-restricted GitHub environments. No account-wide grant or paid-plan change.
+- [ ] Verify token capabilities during actual closed deployment and rotate both tokens before **24 October 2026**. Complete the remaining database/application/email secrets; keep all credentials out of chat, Git and logs.
+- [x] Recover browser access in the in-app Cloudflare browser and Chrome Resend; no current reconnection blocker or repeated token consent.
+- [x] Add and read back Resend's DNS-only CNAMEs (`rsend` → `rsend-euw1.forge.rmta.net`, `send` → `send.forge.rmta.net`); retain DKIM and preserve incoming routing.
+- [x] Inspect Resend account on 18 October: Transactional Free, 0/100 daily and 0/3,000 monthly sends, 2/3 domains, pay-as-you-go disabled; Webhooks says No webhooks yet. Recheck shared allowance before sending.
+- [ ] Complete sender verification: DNS-verified event exists but domain status is Pending. Confirm domain API tracking flags and disable tracking; configure scoped keys and the single available webhook through staging-to-production acceptance.
 - [x] Push reviewed source and verify GitHub's real PostgreSQL concurrency/migration checks (`e51cf5a`).
 - [x] Complete the full check job after the enlarged-text layout correction: `1a982ee`, 72 unit/database and 31 browser tests, types, migrations, Next/OpenNext builds and local Worker check pass. See [current evidence](CLOUDFLARE_LAUNCH.md). Deployment is disabled.
+- [x] Verify the 18 October recovery/access changes locally: 102 tests passed, five real-PostgreSQL tests across three files explicitly skipped; typecheck, workerd cross-script SQLite Durable Object and diff checks pass.
+- [ ] Complete new GitHub CI for the updated source, including the skipped real-PostgreSQL checks. Earlier CI remains historical evidence.
 - [ ] Configure Hyperdrive for each Neon branch with query caching off; apply migrations and verify transactions.
 - [ ] Deploy closed staging from GitHub, protect test signup access, connect sender/DNS and signed webhooks.
 - [ ] Verify real forwarding to Gmail and confirmation → welcome → badge → referral → unsubscribe.
 - [ ] Verify scheduled recovery without another signup, bounded cleanup and failures/retries.
-- [ ] Resolve the Neon five-minute polling compute-budget risk; measure deployed Workers CPU/resources within Free limits.
+- [ ] Verify deployed Neon suspension and idle-aware recovery under backlog/budget conditions; source and local workerd checks are implemented. Measure deployed Workers CPU/resources within Free limits.
 - [ ] Verify production videos/captions, local lists, accessibility, copy and private cache/log behaviour.
 - [ ] Complete the required security audit on the release revision.
 - [ ] Enable collection/indexing only after the above; verify the URL and record deployed commit/run/version.
@@ -55,7 +62,8 @@ Approved operator/contact/retention/budget and destinations are recorded in [CLO
 | Product clarity and discovery | Unassigned | **Open** until actual deployed visitor journeys are verified |
 | Security readiness | Engineering | **Incomplete**; required completion-stage audit and deployment evidence outstanding |
 | Free-tier acceptance | Engineering | **Incomplete**; local runtime/bundle pass, deployed CPU and Neon idle recovery unresolved |
-| Provider accounts | Owner account steps + Engineering | Resend signup and protected credentials still needed |
+| Provider accounts | Owner account steps + Engineering | Browser recovered; Resend DNS added/read back, Free usage and empty webhook inventory inspected; sender Pending, tracking/secrets/live verification outstanding |
+| Deployment-token rotation | Engineering | Due before **24 October 2026**; retain per-environment Worker scope and verify deployment capabilities |
 
 Follow [the Cloudflare deployment sequence](HANDOVER.md#4-cloudflare-configuration-and-release). Vercel is a permitted fallback to assess if needed, not the current host or an approved purchase. Main-app authentication, Google Sheets import and Quest World remain outside this landing release.
 

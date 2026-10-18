@@ -32,6 +32,7 @@ import {
   databaseConnectionString,
 } from "../src/lib/waitlist/connection";
 import { runScheduled } from "../cloudflare/scheduler";
+import { memoryRecovery } from "./helpers/recovery";
 afterEach(() => {
   bindings.value = undefined;
   clients.instances = [];
@@ -70,16 +71,28 @@ describe("Workers database transport", () => {
 
 describe("private scheduler", () => {
   it("surfaces a cleanup backlog after at most three committed batches", async () => {
-    const fetch = vi.fn(async () => Response.json({ ok: true, remaining: true }));
-    await expect(runScheduled({ cron: "0 3 * * *" }, {
-      LANDING: { fetch }, CRON_SECRET: "x".repeat(32), SCHEDULER_ENABLED: "true", MAIL_ENABLED: "false",
-    })).rejects.toThrow("Cleanup backlog remains");
+    const fetch = vi.fn(async () =>
+      Response.json({ ok: true, remaining: true }),
+    );
+    await expect(
+      runScheduled(
+        { cron: "0 3 * * *" },
+        {
+          LANDING: { fetch },
+          MAIL_RECOVERY: memoryRecovery().namespace,
+          CRON_SECRET: "x".repeat(32),
+          SCHEDULER_ENABLED: "true",
+          MAIL_ENABLED: "false",
+        },
+      ),
+    ).rejects.toThrow("Cleanup backlog remains");
     expect(fetch).toHaveBeenCalledTimes(3);
   });
   it("uses service-bound authentication and preserves cleanup while sending is paused", async () => {
     const fetch = vi.fn(async (_request: Request) => new Response("{}"));
     const env = {
       LANDING: { fetch },
+      MAIL_RECOVERY: memoryRecovery().namespace,
       CRON_SECRET: "x".repeat(32),
       SCHEDULER_ENABLED: "true",
       MAIL_ENABLED: "false",
@@ -96,6 +109,7 @@ describe("private scheduler", () => {
   it("surfaces failed recovery and refuses unknown schedules", async () => {
     const env = {
       LANDING: { fetch: vi.fn(async () => new Response("", { status: 503 })) },
+      MAIL_RECOVERY: memoryRecovery().namespace,
       CRON_SECRET: "x".repeat(32),
       SCHEDULER_ENABLED: "true",
       MAIL_ENABLED: "true",

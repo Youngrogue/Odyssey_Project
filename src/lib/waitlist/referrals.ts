@@ -1,3 +1,4 @@
+import { beginMailTransaction } from "../email/recovery";
 import { digest } from "../email/security";
 import { charge, hash, WaitlistRateLimitError, type Queryable } from "./store";
 
@@ -22,7 +23,7 @@ export async function getInviteProgress(
   input: { token: string; secret: string; ip: string },
 ): Promise<InviteProgress | null> {
   if (!validInviteToken(input.token)) return null;
-  await db.query("BEGIN");
+  await beginMailTransaction(db);
   try {
     if (
       !(await charge(db, hash(input.secret, "rate-invite-read", input.ip), 60))
