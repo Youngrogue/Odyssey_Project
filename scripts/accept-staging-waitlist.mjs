@@ -1,4 +1,5 @@
-// Explicit live acceptance: one owner-controlled inbox alias on staging only.
+// Explicit live acceptance: one owner-controlled inbox alias, two messages,
+// on staging only. Resending tests idle recovery without another signup.
 // Never prints credentials, recipient addresses, private links or provider payloads.
 import { Client } from "@neondatabase/serverless";
 import { randomBytes } from "node:crypto";
@@ -75,11 +76,12 @@ async function confirm(email) {
   );
   const queued = await mailFor(record.id, "confirmation");
   requireThat(queued);
-  const tokens = unseal(
+  let tokens = unseal(
     queued.sealed_tokens,
     process.env.WAITLIST_TOKEN_SECRET,
   );
-  subscriptions.push({ email, id: record.id, tokens });
+  const subscription = { email, id: record.id, tokens };
+  subscriptions.push(subscription);
   passed(checkpoint);
 
   checkpoint = "confirmation delivery and signed acknowledgement";
@@ -98,9 +100,33 @@ async function confirm(email) {
   );
   requireThat(!/Founding Explorer|invite code|referral/i.test(envelope.html));
   requireThat(
+    envelope.html.includes('alt="Odyssey logo"') &&
+      envelope.html.includes("https://odyssey.soralives.xyz/brand/open-loop-ink.png") &&
+      envelope.text.includes("https://odyssey.soralives.xyz"),
+  );
+  requireThat(
     envelope.headers?.["List-Unsubscribe-Post"] ===
       "List-Unsubscribe=One-Click",
   );
+  passed(checkpoint);
+
+  checkpoint = "idle recovery after requesting a replacement link";
+  // Respect the production cooldown. No direct DB writes or operator drain:
+  // the resend endpoint only queues work; the deployed recovery must send it.
+  const cooldown = new Date(record.last_confirmation_at).getTime() + 61000 - Date.now();
+  if (cooldown > 0) await new Promise((resolve) => setTimeout(resolve, cooldown));
+  const resent = await request("/api/waitlist/resend", {
+    method: "POST",
+    body: { email, website: "" },
+  });
+  requireThat(resent.status === 200);
+  await resent.body?.cancel();
+  const replacement = await mailFor(record.id, "confirmation");
+  requireThat(replacement && replacement.id !== queued.id);
+  tokens = unseal(replacement.sealed_tokens, process.env.WAITLIST_TOKEN_SECRET);
+  subscription.tokens = tokens;
+  const recovered = await delivered(record.id, "confirmation");
+  requireThat(recovered.id === replacement.id);
   passed(checkpoint);
 
   checkpoint = "scanner-safe confirmation link";
@@ -157,13 +183,13 @@ async function confirm(email) {
     "SELECT count(*)::int AS count FROM waitlist_outbox WHERE signup_id=$1",
     [record.id],
   );
-  requireThat(count.rows[0].count === 1);
+  requireThat(count.rows[0].count === 2);
   passed(checkpoint);
 
-  checkpoint = "original confirmation email can unsubscribe after confirmation";
+  checkpoint = "original confirmation email can unsubscribe after replacement and confirmation";
   const unsub = await request("/api/waitlist/unsubscribe", {
     method: "POST",
-    body: { token: tokens.unsubscribeToken },
+    body: { token: unseal(queued.sealed_tokens, process.env.WAITLIST_TOKEN_SECRET).unsubscribeToken },
   });
   requireThat(unsub.status === 200);
   await unsub.body?.cancel();
@@ -197,7 +223,7 @@ try {
   await client.query("SET statement_timeout = '10s'");
   await confirm(firstEmail);
   console.log(
-    "PASS: deployed staging email-only lifecycle and delivery webhook. Inbox appearance, tracking, idle recovery, outage/suppression and resource acceptance remain separate checks.",
+    "PASS: deployed staging email-only lifecycle, branded email, signed delivery webhook and idle recovery without another signup. Inbox appearance, tracking, outage/suppression and resource acceptance remain separate checks.",
   );
 } catch {
   console.error(
