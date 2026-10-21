@@ -34,10 +34,10 @@ Deployment token expiry: 24 October 2026. Staging service access was created wit
 | Item | Owner | Status / next action |
 | --- | --- | --- |
 | Source checks | Engineering | Passed for the simplified flow: full CI including PostgreSQL, browser and Worker checks. Branding release checks are recorded below. |
-| Security readiness | Engineering | Source audit complete, zero confirmed findings at `8081331`; live readiness incomplete pending provider/runtime acceptance. |
-| Live email | Engineering | Staged end-to-end acceptance and Gmail inbox receipt pass; production secret saved. Production activation and incoming reply forwarding remain to verify. |
-| Recovery and suppression | Engineering | Pending deployed acceptance; preserve source safeguards. |
-| Free-tier acceptance | Engineering | Blocked: staging active-version median105.19ms exceeds documented Free10ms; profile/optimize before opening public collection. |
+| Security readiness | Engineering | Source audit complete, zero findings for native runtime `c4d5163`; native binding/context, private headers, email and recovery integration pass separately. Overall launch readiness remains incomplete while resource/provider gates remain open. |
+| Live email | Engineering | Native staged lifecycle, branded Gmail inbox receipt and signed delivery acknowledgement pass; production secret saved. Production activation and incoming reply forwarding remain to verify. |
+| Recovery and suppression | Engineering | Deployed idle recovery and original-link unsubscribe pass. Source tests cover suppression/provider failure; live bounce/complaint/outage behavior remains separate and is not claimed here. |
+| Free-tier acceptance | Engineering | Blocked after native optimisation: median0.93ms, P90 22.86ms, P99 40.48ms across34 invocations. Zero CPU errors does not establish reliable Free10ms compliance for database/mail flows. |
 | Product clarity and discovery | Engineering | Open: verify the simplified deployed visitor journey before closing. |
 | Public collection/indexing | Engineering | Closed until release gates pass. |
 
@@ -70,3 +70,13 @@ The owner requested the Odyssey logo and website URL. Source `f68195d` adds the 
 Closed production release770a7e1 succeeded in [39564078012](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39564078012). Final branding release [39564959991](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39564959991) succeeded at source `f68195dc48adf03f6c3f10549cc45fc3e72ba48a`, including its full checks. The public logo endpoint returned HTTP200 with `image/png`; the standalone email preview renders the logo and website link. The revised branded email has not been separately sent to an inbox; the earlier email-only lifecycle inbox test is recorded above. Public status still returns `enabled: false`. Automatic deployments were paused again after the deliberate release started.
 
 Recommended next engineering step: profile cold/warm requests and database setup separately, then optimize the API runtime while retaining Neon and the existing marketing design. If a smaller API Worker is required, record that bounded architecture change and rerun the safeguards/Free measurements. Do not enable a paid plan to bypass the gate. Main-app work remains separate.
+
+### Approved CPU optimisation follow-up
+
+That runtime investigation is now implemented at `c4d5163`: the existing Worker serves static Next-built marketing assets and runs lightweight native waitlist routes. The runtime bundle is about92% smaller. Public collection remains closed; production has not been switched to the native candidate or opened during this investigation.
+
+[CPU evidence and remaining gate](CPU_OPTIMIZATION_2026-10-21.md) records the successful protected staging release, exact active version, full lifecycle acceptance, branded inbox evidence, idle recovery, independent source audit and CPU limits. Acceptance39596906629 passed using harness `b5aecbd`; no invitation or welcome email was created. The replacement confirmation arrived through scheduled recovery with no further signup. Test subscriptions were revoked.
+
+SELECT-only diagnostic39598313852 compared WebSocket and direct TCP Neon connections in local workerd. Both worked. WebSocket elapsed responses were414–462ms versus TCP656–736ms in that runner; those include network waits and are not billed CPU. Sampling includes long inactive gaps, so summed profile time is not presented as request CPU. The evidence does not justify changing the tested production transport. Profiles are saved outside Git. No database writes, email sends, provider-plan changes or credential changes occurred in the diagnostic.
+
+The next optimisation must address the complete transactional/database-and-mail path, with per-route deployed measurements and preserved locking, budgets, suppression and retries. A low mixed-traffic median alone is not the release criterion. No paid workaround has been enabled. Product clarity and discovery remains Open until the enabled public journey can be verified.
