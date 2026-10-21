@@ -46,12 +46,6 @@ export function parseSignup(value: unknown): {
 } {
   const record = objectWithKeys(value, ["email", "website", "referralCode"]);
   if (
-    record.referralCode !== undefined &&
-    (typeof record.referralCode !== "string" ||
-      !/^[A-Za-z0-9_-]{16}$/.test(record.referralCode))
-  )
-    throw new Error("Invalid referral code");
-  if (
     typeof record.email !== "string" ||
     typeof record.website !== "string" ||
     record.website.length > 512
@@ -82,9 +76,6 @@ export function parseSignup(value: unknown): {
   return {
     email,
     honeypot: record.website.trim().length > 0,
-    ...(typeof record.referralCode === "string"
-      ? { referralCode: record.referralCode }
-      : {}),
   };
 }
 

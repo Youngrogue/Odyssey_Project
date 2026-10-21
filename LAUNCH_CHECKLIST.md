@@ -1,5 +1,7 @@
 # Odyssey — landing review and launch checklist
 
+**21 October — email-only scope:** Read [the current release record](WAITLIST_RELEASE_2026-10-21.md) first. Invitation/referral/badge and separate welcome-email steps below are historical and superseded for the landing page. Implementation is being verified; collection/indexing remain closed.
+
 **18 October verified design release:** [Live Odyssey](https://odyssey.soralives.xyz) now serves `d6f616a` from [successful production run 39132258936](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39132258936). All 35 browser checks and the full release pipeline pass; desktop/mobile Chrome verification confirms the new actions and layout. Automatic deployment is paused again.
 
 **18 October design follow-up:** [Design, copy and visitor-flow review](DESIGN_REVIEW_2026-10-18.md) records the responsive corrections, useful Bucket-list action, FAQ navigation and removal of visible generator credit. Protected staging now passes [run 39130578260](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39130578260), including the rotated CI credential and signed-webhook boundary. Collection/indexing remain closed; actual mail/forwarding/recovery and Free-resource acceptance remain open. This update supersedes older unfinished-staging statements below.
@@ -62,9 +64,9 @@ Approved operator/contact/retention/budget and destinations are recorded in [CLO
 - [x] Record final [full CI 39115904292](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39115904292) outcome for `06655d9cd15d9f6a2d73a5b53bba61e2e50cef15` — **success**: 115 tests, 31 browser checks, types, repeated migrations, both builds and both Worker checks. The separate remote-Neon staging check also passed; deployment was skipped.
 - [x] Apply production migrations `001`–`004` in closed run 39124560727; preserve staging isolation and existing data.
 - [ ] Reconcile partial Worker/domain/scheduler state; complete the dependency review before another deployment.
-- [ ] Verify deployed Worker secret delivery, database failure/retry handling and full signup/referral/suppression concurrency journeys before release.
+- [ ] Verify deployed Worker secret delivery, database failure/retry handling and full email-only signup/suppression concurrency journeys before release.
 - [ ] Deploy closed staging from GitHub, protect test signup access, connect sender/DNS and signed webhooks.
-- [ ] Verify real forwarding to Gmail and confirmation → welcome → badge → referral → unsubscribe.
+- [ ] Verify real forwarding to Gmail and email submission → confirmation → acceptance → unsubscribe.
 - [ ] Verify scheduled recovery without another signup, bounded cleanup and failures/retries.
 - [ ] Verify deployed Neon suspension and idle-aware recovery under backlog/budget conditions; source and local workerd checks are implemented. Measure deployed Workers CPU/resources within Free limits.
 - [ ] Verify production videos/captions, local lists, accessibility, copy and private cache/log behaviour.
@@ -89,7 +91,7 @@ Follow [the Cloudflare deployment sequence](HANDOVER.md#4-cloudflare-configurati
 
 The new UI has no backend leaderboard, award mutation or account opt-in. Its scores are illustrations. The real waitlist backend is implemented, but configuration presence, SQL tests and browser fixtures do not prove Neon reachability, domain ownership, inbox delivery, scheduled execution or provider logging settings.
 
-The two-connection PostgreSQL tests remain release checks: no disposable local PostgreSQL service is available here. PGlite covers sequential SQL behavior, not independent connection locking. Bulk build/launch announcements need a reviewed campaign workflow before the first campaign; the current outbox handles confirmation and welcome.
+The two-connection PostgreSQL tests remain release checks: no disposable local PostgreSQL service is available here. PGlite covers sequential SQL behavior, not independent connection locking. Bulk build/launch announcements need a reviewed campaign workflow before the first campaign; the current dispatcher sends confirmation only; legacy welcome jobs are cancelled.
 
 ## 5. After landing release
 

@@ -1,5 +1,7 @@
 # Odyssey landing — owner handover
 
+**21 October — email-only scope:** Read [the current release record](WAITLIST_RELEASE_2026-10-21.md) first. Invitation/referral/badge and separate welcome-email steps below are historical and superseded for the landing page. Implementation is being verified; collection/indexing remain closed.
+
 **18 October verified design release:** [Live Odyssey](https://odyssey.soralives.xyz) now serves `d6f616a` from [successful production run 39132258936](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39132258936). All 35 browser checks and the full release pipeline pass; desktop/mobile Chrome verification confirms the new actions and layout. Automatic deployment is paused again.
 
 **18 October design follow-up:** [Design, copy and visitor-flow review](DESIGN_REVIEW_2026-10-18.md) records the responsive corrections, useful Bucket-list action, FAQ navigation and removal of visible generator credit. Protected staging now passes [run 39130578260](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39130578260), including the rotated CI credential and signed-webhook boundary. Collection/indexing remain closed; actual mail/forwarding/recovery and Free-resource acceptance remain open. This update supersedes older unfinished-staging statements below.
@@ -19,7 +21,7 @@ Run `pnpm dev`, then open `http://127.0.0.1:3000`.
 - Select the ISO-GLOW dance floor, games lounge and reading garden. The active scene lights up and reveals activities. Research-only organiser names stay in the project catalogue, outside the public page.
 - Open an activity’s “See trophies & leaderboards”, or the progress section. All 18 ideas connect to relevant trophy families. Switch monthly/all-time and “The leaderboard”/“My own pace”. Foodie characters show Mira/Tobi/Dee with requested titles and 2,543/2,218/1,864 monthly XP. These are original illustrated product characters, not customers or live standings; playful titles are not new approved trophy thresholds. F–S ranks, account levels and board position remain distinct. Local checkmarks never write rewards.
 - Play the 20-second Odyssey film and the original 40-second Break the Loop teaser. The players pause each other. Review the portrait film's sound and music/footage rights before publication; audio is non-silent but a listening review is still needed.
-- Join directly, through `/?ref=CODE#waitlist`, or with a manually entered 16-character code. Real collection remains closed until configuration passes. Confirming a valid email opens a private invite page; the welcome email includes both a public share link and a separately labelled private access link. The public sample-email walkthrough has been removed.
+- Enter an email address and confirm using the single confirmation email. Acceptance states that you will hear when Odyssey launches. No account, preference questionnaire, badge, referral code or welcome email is created. Legacy referral parameters are ignored and private invitation pages are retired. Real collection stays closed until live acceptance passes.
 - Prepare a partnership introduction. It can be copied/downloaded locally. An “Open email draft” option appears only when a genuine public inbox is configured; the visitor must review/send it in their email app.
 
 The first release can show the page with signups closed while accounts are connected. Do not describe that preview as a working public waitlist.
@@ -40,7 +42,7 @@ The first release can show the page with signups closed while accounts are conne
 | Send budget | 80 attempts/day, subject to provider allowance; retries count |
 | Deployment credentials | `CLOUDFLARE_API_TOKEN` stored separately in the `staging` and `production` GitHub environments; each token covers only that environment's two Odyssey Workers and expires 24 October 2026; actual deployment capability unverified |
 | Remaining credentials | Resend webhook signing secret and Access configuration; direct Neon runtime delivery still needs verification. Matching Neon `DATABASE_URL`, separate application signing keys and `RESEND_API_KEY` are stored per GitHub environment |
-| Optional referral perks | Founding Explorer recognition implemented; proposed 3/5-referral perks remain inactive |
+| Referral perks and badges | Deferred to the main app; landing signup issues none. Historical data preserved. |
 
 Never paste credentials into chat or Git. The Google Sheet is an editorial planner, not a waitlist database. App authentication is unnecessary for this release.
 

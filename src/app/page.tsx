@@ -23,7 +23,7 @@ const questions = [
   ],
   [
     "When will the app be ready?",
-    "We’re building Odyssey and haven’t announced a launch date. The waitlist brings you a useful welcome, meaningful progress updates and a launch notification.",
+    "We’re building Odyssey and haven’t announced a launch date. Join the waitlist to hear when Odyssey launches.",
   ],
   [
     "Which cities are planned?",
@@ -39,15 +39,15 @@ const questions = [
   ],
   [
     "What do early birds get?",
-    "Confirm your email to receive Founding Explorer recognition and a badge you can save and share. You’ll also get a personal invite link, meaningful progress updates and a launch notification. This celebrates being here early; it is separate from the app’s activity ranks and XP.",
+    "Confirm your email to be among the first to hear when Odyssey launches.",
   ],
   [
     "How can I bring my friends?",
-    "Confirm your waitlist email to get your own invite code and shareable link. Send it to people who’d enjoy Odyssey. Your private invite page shows how many new signups have confirmed through your link, without sharing anyone’s email address. Invites are separate from activity XP and competition.",
+    "Share this landing page with people who would enjoy Odyssey. Invitations and accounts are planned for the future app.",
   ],
   [
     "What will you email me?",
-    "A confirmation email, then a welcome with ideas and what to expect. After that, meaningful project updates and a launch notification. No app account, broader newsletter or partner mailing list is created. You can unsubscribe.",
+    "One confirmation email, followed by a launch notification when Odyssey is ready. No app account, broader newsletter or partner mailing list is created. You can unsubscribe.",
   ],
 ];
 export default function HomePage() {
@@ -82,7 +82,8 @@ export default function HomePage() {
             </p>
             <div id="waitlist" className="waitlist-anchor">
               <p className="signup-intro">
-                Launch updates. A Founding Explorer badge. Your next first.
+                Join the Odyssey waitlist and be among the first to hear when we
+                launch.
               </p>
               <WaitlistForm />
             </div>
@@ -228,20 +229,18 @@ export default function HomePage() {
             <li>
               <span>01</span>
               <div>
-                <h3>A little badge for a big beginning.</h3>
+                <h3>Start with your email.</h3>
                 <p>
-                  Confirm your email to become a Founding Explorer. Get a badge
-                  to save and share, a proper welcome and ideas to try.
+                  Enter your email and we’ll send a link to confirm your place.
                 </p>
               </div>
             </li>
             <li>
               <span>02</span>
               <div>
-                <h3>Your people. Your invite.</h3>
+                <h3>Confirm your place.</h3>
                 <p>
-                  Get a personal code and link to share. Keep track of confirmed
-                  invites on a private page, just for you.
+                  Choose Confirm my email in your email to join the waitlist.
                 </p>
               </div>
             </li>
@@ -250,9 +249,8 @@ export default function HomePage() {
               <div>
                 <h3>Know when it’s time.</h3>
                 <p>
-                  Meaningful progress updates and a launch notification, so
-                  you’re ready for your next first. Unsubscribe whenever you
-                  like.
+                  A launch notification, so you’re ready for your next first.
+                  Unsubscribe whenever you like.
                 </p>
               </div>
             </li>

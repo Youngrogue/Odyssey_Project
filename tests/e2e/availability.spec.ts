@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-test("static signup checks runtime status and recovers without losing an invitation", async ({
+test("static signup checks runtime status and recovers with email-only signup", async ({
   page,
 }) => {
   let retry = false;
@@ -22,16 +22,5 @@ test("static signup checks runtime status and recovers without losing an invitat
   await expect(
     page.getByRole("textbox", { name: "Your email address" }),
   ).toBeEnabled();
-  await expect(page.getByLabel("Invite code", { exact: false })).toHaveValue(
-    "abcdefghijklmnop",
-  );
-});
-test("repeated or malformed referral parameters do not prefill a code", async ({
-  page,
-}) => {
-  await page.goto("/?ref=abcdefghijklmnop&ref=qrstuvwxyzABCDEF");
-  await page.getByText("Have an invite code?", { exact: true }).click();
-  await expect(page.getByLabel("Invite code", { exact: false })).toHaveValue(
-    "",
-  );
+  await expect(page.getByLabel("Invite code", { exact: false })).toHaveCount(0);
 });

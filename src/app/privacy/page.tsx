@@ -52,19 +52,16 @@ export default function PrivacyPage() {
         <h2>What joining means</h2>
         <p>
           When signups are open, we collect your email to request confirmation
-          that you want meaningful project updates and a launch notification.
-          After submitting, you may optionally share your city and interests, or
-          skip them. Confirming sends a welcome email. Joining does not create
-          an app account or a public profile, and does not subscribe you to a
-          broader newsletter.
+          that you want a launch notification. We send one confirmation email.
+          Joining does not create an app account or a public profile, and does
+          not subscribe you to a broader newsletter.
         </p>
         <h2>What we store and who processes it</h2>
         <p>
           We store your email, signup and confirmation times, notice version,
-          optional preferences and subscription status. A short-lived, private
-          security cookie lets you add preferences. Abuse prevention uses keyed
-          hashes of your email and request source; the application does not
-          store a raw IP address in these counters.
+          subscription status and any historical optional preferences. Abuse
+          prevention uses keyed hashes of your email and request source; the
+          application does not store a raw IP address in these counters.
         </p>
         <p>
           The service uses Cloudflare for hosting and contact-email forwarding,
@@ -79,32 +76,12 @@ export default function PrivacyPage() {
           add advertising trackers or third-party analytics to this page. We
           keep provider open and click tracking disabled.
         </p>
-        <h2>Invite codes and your private invite page</h2>
+        <h2>Historical invitations</h2>
         <p>
-          Confirmed subscribers receive a public invite code and link. If a new
-          subscriber joins through that link, we store the connection between
-          their signup and the inviter. Only new, confirmed, active signups
-          count; repeat signups and self-referrals do not. Unsubscribed,
-          suppressed or expired records stop counting, so totals may decrease.
-        </p>
-        <p>
-          Your public invite code does not grant access to your private page. A
-          separate access link in your welcome email opens a page where you
-          choose to continue; it then sets a private, HttpOnly cookie for one
-          day. Keep this access link private. Anyone holding it may see your
-          invite code and aggregate count while your subscription remains
-          active. No invitee names or email addresses are shown. We do not
-          upload your contacts or send invitations to friends on your behalf.
-        </p>
-        <p>
-          Founding Explorer recognition records when you confirmed as an early
-          waitlist member. Your downloadable badge is made on your device and
-          contains no email address or private invite link. Recognition, invite
-          relationships and access records are retained with the waitlist
-          signup, not as a separate permanent history. Deleting a signup removes
-          its referral relationship; deleting an inviter disconnects remaining
-          invitees. Unsubscribing disables private-page access immediately.
-          Invites do not award activity XP or add you to a public leaderboard.
+          Invitations and recognition are planned for the future app. We no
+          longer create referral relationships or issue badges through this
+          waitlist. Historical records follow the same retention and deletion
+          policy as the associated signup.
         </p>
         <h2>Confirmation and unsubscribe</h2>
         <p>

@@ -1,0 +1,34 @@
+name: Accept Odyssey staging email journey
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: odyssey-Check and release Odyssey-refs/heads/main
+  cancel-in-progress: false
+jobs:
+  accept:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Exercise one controlled email-only subscription on deployed staging
+        run: node scripts/accept-staging-waitlist.mjs
+        env:
+          LAUNCH_ACCEPTANCE: staging-owner-inboxes
+          LAUNCH_TEST_EMAIL: ${{ vars.LAUNCH_TEST_EMAIL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          WAITLIST_TOKEN_SECRET: ${{ secrets.WAITLIST_TOKEN_SECRET }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          CF_ACCESS_TEAM_DOMAIN: ${{ vars.CF_ACCESS_TEAM_DOMAIN }}

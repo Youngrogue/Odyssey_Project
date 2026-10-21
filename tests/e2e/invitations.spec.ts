@@ -1,86 +1,43 @@
 import { test, expect } from "@playwright/test";
-
-test("invite links carry attribution into a new signup without exposing a private dashboard", async ({
-  page,
-}) => {
-  let submitted: Record<string, unknown> | undefined;
-  await page.route("**/api/waitlist", async (route) => {
-    submitted = route.request().postDataJSON();
-    await route.fulfill({
-      status: 202,
-      contentType: "application/json",
-      body: JSON.stringify({ ok: true }),
+for (const query of [
+  "?ref=abcdEFGH1234_-56",
+  "?ref=bad!",
+  "?ref=abcdefghijklmnop&ref=qrstuvwxyzABCDEF",
+]) {
+  test(`legacy invitation parameter is ignored: ${query}`, async ({ page }) => {
+    let submitted: Record<string, unknown> | undefined;
+    await page.route("**/api/waitlist", async (route) => {
+      submitted = route.request().postDataJSON();
+      await route.fulfill({ status: 200, json: { ok: true } });
+    });
+    await page.goto(`/${query}#waitlist`);
+    await page
+      .getByLabel("Your email address", { exact: true })
+      .fill("new-explorer@example.com");
+    await expect(page.getByLabel("Invite code", { exact: false })).toHaveCount(
+      0,
+    );
+    await page
+      .getByRole("button", { name: "Notify me at launch", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", {
+        name: "Check your inbox to confirm your place.",
+      }),
+    ).toBeVisible();
+    expect(submitted).toEqual({
+      email: "new-explorer@example.com",
+      website: "",
     });
   });
-  await page.goto("/?ref=abcdEFGH1234_-56#waitlist");
-  await page
-    .getByLabel("Your email address", { exact: true })
-    .fill("new-explorer@example.com");
-  await page
-    .getByRole("button", { name: "Join the waitlist", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "What’s your kind of fun?" }),
-  ).toBeVisible();
-  expect(submitted).toMatchObject({
-    email: "new-explorer@example.com",
-    referralCode: "abcdEFGH1234_-56",
-  });
-  await page.getByRole("button", { name: "Skip for now" }).click();
-  await expect(page.getByText(/your own invite link to share/)).toBeVisible();
-  await page.goto("/waitlist/invite?ref=abcdEFGH1234_-56");
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.locator("body")).not.toContainText("abcdEFGH1234_-56");
-  await expect(page.locator(".invite-share-link")).toHaveCount(0);
-});
-
-test("malformed referral query does not stop a direct signup", async ({
+}
+test("legacy private invitation page exposes no private state", async ({
   page,
 }) => {
-  let submitted: Record<string, unknown> | undefined;
-  await page.route("**/api/waitlist", async (route) => {
-    submitted = route.request().postDataJSON();
-    await route.fulfill({
-      status: 202,
-      contentType: "application/json",
-      body: JSON.stringify({ ok: true }),
-    });
-  });
-  await page.goto("/?ref=bad!");
-  await page
-    .getByLabel("Your email address", { exact: true })
-    .fill("direct@example.com");
-  await page
-    .getByRole("button", { name: "Join the waitlist", exact: true })
-    .click();
+  await page.goto("/waitlist/invite?token=private-legacy-token");
   await expect(
-    page.getByRole("heading", { name: "What’s your kind of fun?" }),
+    page.getByRole("heading", { name: "Keep exploring Odyssey" }),
   ).toBeVisible();
-  expect(submitted).toMatchObject({ email: "direct@example.com" });
-  expect(submitted).not.toHaveProperty("referralCode");
-});
-
-test("a visitor can enter an invite code without a referral URL", async ({
-  page,
-}) => {
-  let submitted: Record<string, unknown> | undefined;
-  await page.route("**/api/waitlist", async (route) => {
-    submitted = route.request().postDataJSON();
-    await route.fulfill({ status: 202, json: { ok: true } });
-  });
-  await page.goto("/");
-  await page.getByText("Have an invite code?", { exact: true }).click();
-  await page
-    .getByLabel("Invite code", { exact: false })
-    .fill("abcdEFGH1234_-56");
-  await page
-    .getByLabel("Your email address", { exact: true })
-    .fill("with-code@example.com");
-  await page
-    .getByRole("button", { name: "Join the waitlist", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "What’s your kind of fun?" }),
-  ).toBeVisible();
-  expect(submitted).toMatchObject({ referralCode: "abcdEFGH1234_-56" });
+  await expect(page.locator("body")).not.toContainText("private-legacy-token");
+  await expect(page.locator("body")).toContainText("future app");
 });

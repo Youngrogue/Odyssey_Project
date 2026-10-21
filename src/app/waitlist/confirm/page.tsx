@@ -28,7 +28,9 @@ export default async function Confirm({
             ? "Too many attempts. Please try again later."
             : params.error === "unavailable"
               ? "This action is temporarily unavailable. Please try again later."
-              : "We could not process that request. Please use your email link or request a new one."}
+              : params.error === "expired"
+                ? "This confirmation link has expired, has already been used or is no longer valid. Request a new one below if needed."
+                : "We could not process that request. Please use your email link or request a new one."}
         </p>
       )}
       {params.resent && (
@@ -39,16 +41,14 @@ export default async function Confirm({
       )}
       {params.done ? (
         <p>
-          Request processed. If your link was valid and current, your email is
-          now confirmed. Your welcome email contains your private invitation
-          page and a public link you can share with friends. No app account has
-          been created.
+          You're on the list. You'll be among the first to hear when Odyssey
+          launches.
         </p>
       ) : (
         <>
           <p>
             {valid
-              ? "Choose the button below to confirm that you want meaningful project updates and a launch notification. Opening this page alone does not subscribe you."
+              ? "Choose the button below to confirm that you want a launch notification. Opening this page alone does not subscribe you."
               : "Open the confirmation link in your email, or request a new one below. Opening this page alone does not subscribe you."}
           </p>
           {valid && (
@@ -61,6 +61,9 @@ export default async function Confirm({
           )}
         </>
       )}
+      <p>
+        <a href="/#activity-ideas">Return to exploring Odyssey</a>
+      </p>
       <h2>Need a new link?</h2>
       <p>
         Confirmation links expire after 24 hours. If this address can receive

@@ -56,6 +56,7 @@ export async function drain(
         continue;
       }
       if (
+        job.kind !== "confirmation" ||
         (await isSuppressed(
           db,
           config.tokenSecret,
@@ -118,14 +119,10 @@ export async function drain(
             to: [subscriber.email],
             reply_to: config.contactEmail,
             ...rendered,
-            ...(job.kind === "welcome"
-              ? {
-                  headers: {
-                    "List-Unsubscribe": `<${config.origin}/api/waitlist/unsubscribe?token=${tokens.unsubscribeToken}>`,
-                    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-                  },
-                }
-              : {}),
+            headers: {
+              "List-Unsubscribe": `<${config.origin}/api/waitlist/unsubscribe?token=${tokens.unsubscribeToken}>`,
+              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+            },
           };
       // Persist intent BEFORE network. If process dies after acceptance, retry uses the same exact payload and key.
       await db.query(

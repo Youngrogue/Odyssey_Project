@@ -13,7 +13,6 @@ import {
 } from "../waitlist/validation";
 import { act, resend, purge } from "./lifecycle";
 import { drain } from "./worker";
-import { inviteCookie } from "../waitlist/referrals";
 import { nextMailRecovery } from "./recovery";
 export const result = (status = 200) =>
   Response.json(
@@ -30,7 +29,6 @@ export async function actionHandler(
   request: Request,
   kind: "confirm" | "unsubscribe" | "resend",
 ) {
-  let inviteToken: string | undefined;
   const oneClick =
     kind === "unsubscribe" && new URL(request.url).searchParams.has("token");
   const nativeForm =
@@ -40,11 +38,6 @@ export async function actionHandler(
   const respond = (status = 200) => {
     if (!nativeForm) {
       const response = result(status);
-      if (status === 200 && inviteToken && config)
-        response.headers.set(
-          "Set-Cookie",
-          inviteCookie(inviteToken, config.origin),
-        );
       return response;
     }
     const code =
@@ -52,19 +45,13 @@ export async function actionHandler(
         ? kind === "resend"
           ? "resent=1"
           : "done=1"
-        : `error=${status === 429 ? "limited" : status === 503 ? "unavailable" : "invalid"}`;
+        : `error=${status === 429 ? "limited" : status === 503 ? "unavailable" : status === 410 ? "expired" : "invalid"}`;
     return new Response(null, {
       status: 303,
       headers: {
-        Location:
-          status === 200 && inviteToken
-            ? "/waitlist/invite"
-            : `/waitlist/${kind === "resend" ? "confirm" : kind}?${code}`,
+        Location: `/waitlist/${kind === "resend" ? "confirm" : kind}?${code}`,
         "Cache-Control": "no-store",
         "Referrer-Policy": "no-referrer",
-        ...(status === 200 && inviteToken && config
-          ? { "Set-Cookie": inviteCookie(inviteToken, config.origin) }
-          : {}),
       },
     });
   };
@@ -128,7 +115,7 @@ export async function actionHandler(
           kind,
           retentionDays: config.retentionDays,
         });
-        inviteToken = outcome?.inviteToken;
+        if (kind === "confirm" && !outcome?.confirmed) return respond(410);
       }
     } finally {
       await db.release();

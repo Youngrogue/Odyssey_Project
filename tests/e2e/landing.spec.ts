@@ -18,7 +18,7 @@ for (const [width, height] of [
     await page.goto("/");
     await page.evaluate(() => document.fonts.ready);
     const signup = page.getByRole("button", {
-      name: "Join the waitlist",
+      name: "Notify me at launch",
       exact: true,
     });
     await expect(signup).toBeEnabled();
@@ -132,7 +132,7 @@ test("invalid input, server failure and retry preserve the signup", async ({
   await page.goto("/");
   const input = page.getByRole("textbox", { name: "Your email address" });
   const join = page.getByRole("button", {
-    name: "Join the waitlist",
+    name: "Notify me at launch",
     exact: true,
   });
   await input.fill("wrong");
@@ -155,17 +155,18 @@ test("invalid input, server failure and retry preserve the signup", async ({
   );
   await join.click();
   await expect(
-    page.getByRole("heading", { name: "What’s your kind of fun?" }),
-  ).toBeFocused();
-  await page.getByRole("button", { name: "Skip for now" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Here’s to your next first." }),
+    page.getByRole("heading", {
+      name: "Check your inbox to confirm your place.",
+    }),
   ).toBeFocused();
 });
 
-test("optional preferences and skip remain accessible after a save fails or hangs", async ({
-  page,
-}) => {
+test("email-only signup needs no further profile details", async ({ page }) => {
+  let preferencesRequests = 0;
+  page.on("request", (request) => {
+    if (request.url().includes("/api/waitlist/preferences"))
+      preferencesRequests++;
+  });
   await page.route("**/api/waitlist", (route) =>
     route.fulfill({ status: 200, json: { ok: true } }),
   );
@@ -174,49 +175,15 @@ test("optional preferences and skip remain accessible after a save fails or hang
     .getByRole("textbox", { name: "Your email address" })
     .fill("test@example.com");
   await page
-    .getByRole("button", { name: "Join the waitlist", exact: true })
+    .getByRole("button", { name: "Notify me at launch", exact: true })
     .click();
-  await page.getByLabel("Your city").selectOption("lagos");
-  await page.getByLabel("Days at home").check();
-  let received: unknown;
-  await page.route("**/api/waitlist/preferences", (route) => {
-    received = route.request().postDataJSON();
-    return route.fulfill({ status: 503, json: { ok: false } });
-  });
-  await page.getByRole("button", { name: "Done", exact: true }).click();
-  await expect(page.locator("#waitlist .form-error[role=alert]")).toContainText(
-    "Your signup is safe",
-  );
-  expect(received).toEqual({ city: "lagos", interests: ["home"] });
-  await page.route("**/api/waitlist/preferences", async () => {
-    /* deliberately unresolved; skip must stay usable */
-  });
-  await page.getByRole("button", { name: "Done", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Saving…" })).toBeDisabled();
-  await page.getByRole("button", { name: "Skip for now" }).click();
   await expect(
-    page.getByRole("heading", { name: "Here’s to your next first." }),
+    page.getByRole("heading", {
+      name: "Check your inbox to confirm your place.",
+    }),
   ).toBeVisible();
-});
-
-test("preferences can be saved successfully", async ({ page }) => {
-  await page.route("**/api/waitlist", (route) =>
-    route.fulfill({ status: 200, json: { ok: true } }),
-  );
-  await page.route("**/api/waitlist/preferences", (route) =>
-    route.fulfill({ status: 200, json: { ok: true } }),
-  );
-  await page.goto("/");
-  await page
-    .getByRole("textbox", { name: "Your email address" })
-    .fill("test@example.com");
-  await page
-    .getByRole("button", { name: "Join the waitlist", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Done", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Here’s to your next first." }),
-  ).toBeVisible();
+  await expect(page.getByLabel("Your city")).toHaveCount(0);
+  expect(preferencesRequests).toBe(0);
 });
 
 test("teaser has keyboard focus, native controls and loads only on request", async ({
@@ -301,7 +268,7 @@ test("unconfigured preview disables collection and explains privacy", async ({
   await page.goto("http://127.0.0.1:43217");
   await page.evaluate(() => document.fonts.ready);
   await expect(
-    page.getByRole("button", { name: "Join the waitlist", exact: true }),
+    page.getByRole("button", { name: "Notify me at launch", exact: true }),
   ).toBeDisabled();
   await expect(
     page.getByText("Signups are opening soon.", { exact: false }),

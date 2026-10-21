@@ -1,8 +1,8 @@
 # Odyssey — landing page
 
-A prelaunch landing page: isometric activity illustrations and interactive ISO-GLOW community scenes, 18 explorable ideas, a browser-local Bucket list, recurring checklists, illustrated trophy/leaderboard storytelling, two playable films, a partnership draft and confirmed invitation referrals. The real waitlist backend is implemented and stays closed until configured.
+A prelaunch landing page: isometric activity illustrations and interactive ISO-GLOW community scenes, 18 explorable ideas, a browser-local Bucket list, recurring checklists, illustrated trophy/leaderboard storytelling, two playable films, a partnership draft and an email-only waitlist. The real waitlist backend is implemented and stays closed until configured.
 
-**Start with [HANDOVER.md](HANDOVER.md). The landing page is live at https://odyssey.soralives.xyz with signups and indexing closed.** Source `30be319` deployed through [GitHub run 39127879045](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39127879045), attempt 2; full checks, deployment, live route checks and Chrome inspection passed. Neon stays in place with isolated staging/production branches. See the [current deployment record](LAUNCH_DEPENDENCY_REVIEW_2026-10-18.md#current-result--public-page-is-viewable) for remaining email, staging, resource and visitor acceptance before registrations open.
+**Start with [the email-only release record](WAITLIST_RELEASE_2026-10-21.md) and [HANDOVER.md](HANDOVER.md). The landing page is live at https://odyssey.soralives.xyz with signups and indexing closed.** Source `30be319` deployed through [GitHub run 39127879045](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39127879045), attempt 2; full checks, deployment, live route checks and Chrome inspection passed. Neon stays in place with isolated staging/production branches. See the [current deployment record](LAUNCH_DEPENDENCY_REVIEW_2026-10-18.md#current-result--public-page-is-viewable) for remaining email, staging, resource and visitor acceptance before registrations open.
 
 Use [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) to review the visitor journeys, and [CLOUDFLARE_LAUNCH.md](CLOUDFLARE_LAUNCH.md) for the current implementation evidence and blockers.
 
@@ -15,7 +15,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open `http://127.0.0.1:3000`. Without secrets, the real email form is disabled. The page says signups are opening soon; there is no fake success or public email walkthrough. Referral storage, confirmation and mail are exercised with isolated test fixtures until real providers are configured.
+Open `http://127.0.0.1:3000`. Without secrets, the real email form is disabled. The page says signups are opening soon; there is no fake success or public email walkthrough. Email submission, confirmation and unsubscribe are exercised with isolated test fixtures until real providers are configured.
 
 ```sh
 pnpm setup:check
@@ -45,15 +45,15 @@ Browser tests use installed Google Chrome (bundled Chromium in CI) and two local
 | Isometric activity drawings | `src/components/idea-illustration.tsx` |
 | Hero illustration | `public/illustrations/`, `src/components/isometric-world.tsx` |
 | Layout and styles | `src/app/globals.css`, `src/app/landing-expansion.css` |
-| Waitlist and optional invitation code | `src/components/waitlist-form.tsx` |
-| Referral attribution/private page | `db/004_waitlist_referrals.sql`, `src/lib/waitlist/referrals.ts`, `src/app/waitlist/invite/` |
+| Email-only waitlist | `src/components/waitlist-form.tsx` |
+| Preserved historical referral schema and retired routes | `db/004_waitlist_referrals.sql`, `src/lib/waitlist/referrals.ts`, `src/app/waitlist/invite/` |
 | Original portraits and trophy graphics | `src/components/explorer-portrait.tsx`, `src/components/achievement-art.tsx` |
 | Actual HTML/plain-text email copy | `src/lib/email/templates.ts` |
 | Privacy notice and consent version | `src/app/privacy/page.tsx`, `src/lib/waitlist/notice.ts` |
 | Database schema, outbox and mail lifecycle | `db/`, `src/lib/waitlist/`, `src/lib/email/` |
 | Video sources, posters and text tracks | `public/media/`, `src/components/teaser.tsx` |
 
-Keep the distinction between preview actions and the future app. The preview awards no XP or trophies and makes no bookings. Unverified named communities remain in research documents, outside public landing copy. Illustrated character scores are not live standings. Confirmed early members receive a saveable Founding Explorer badge. Referral milestone perks remain an owner decision; no unapproved thresholds or XP rewards are active. The six activity groupings are navigation for this landing page, not new approved top-level app categories.
+Keep the distinction between preview actions and the future app. The preview awards no XP or trophies and makes no bookings. Unverified named communities remain in research documents, outside public landing copy. Illustrated character scores are not live standings. The landing waitlist creates no accounts, badges or referral codes. Those features remain deferred to the main app; historical data is retained. The six activity groupings are navigation for this landing page, not new approved top-level app categories.
 
 ## Media and source preservation
 

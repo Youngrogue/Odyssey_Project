@@ -44,15 +44,13 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const client = await connectWaitlist();
-    let token: string;
     try {
-      ({ token } = await saveSignup(client, {
+      await saveSignup(client, {
         email: parsed.email,
         ip: getRateLimitClientIp(request.headers, config.trustedIpHeader),
         secret: config.tokenSecret,
         retentionDays: config.retentionDays,
-        referralCode: parsed.referralCode,
-      }));
+      });
     } finally {
       await client.release();
     }
@@ -72,12 +70,7 @@ export async function POST(request: Request): Promise<Response> {
     } catch {
       /* Scheduling failure does not undo committed intake; cron recovers. */
     }
-    const result = response(200);
-    result.headers.set(
-      "Set-Cookie",
-      `odyssey_waitlist_cap=${token}; Max-Age=86400; Path=/api/waitlist/preferences; HttpOnly; SameSite=Strict${config.origin.startsWith("https:") ? "; Secure" : ""}`,
-    );
-    return result;
+    return response(200);
   } catch (error) {
     if (error instanceof WaitlistRateLimitError)
       return response(429, "Too many attempts. Try again later");

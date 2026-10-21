@@ -88,7 +88,7 @@ test("closed signups cannot collect or submit email", async ({ page }) => {
     page.getByLabel("Your email address", { exact: true }),
   ).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "Join the waitlist", exact: true }),
+    page.getByRole("button", { name: "Notify me at launch", exact: true }),
   ).toBeDisabled();
   await expect(page.locator("iframe")).toHaveCount(0);
   expect(api).toEqual([`${preview}/api/waitlist/status`]);

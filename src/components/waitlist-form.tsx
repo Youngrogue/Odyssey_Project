@@ -4,46 +4,20 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Icon } from "./icons";
 
-const interests = [
-  ["food", "Food & flavour"],
-  ["dance", "Dance & music"],
-  ["games", "Games"],
-  ["arts", "Arts & making"],
-  ["movement", "Sports & movement"],
-  ["communities", "Communities"],
-  ["home", "Days at home"],
-] as const;
-
 export function WaitlistForm() {
   const [availability, setAvailability] = useState<
     "loading" | "open" | "closed" | "error"
   >("loading");
   const [availabilityAttempt, setAvailabilityAttempt] = useState(0);
-  const [referralCode, setReferralCode] = useState<string>();
   const enabled = availability === "open";
   const id = useId();
   const [email, setEmail] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
-  const inviteRef = useRef<HTMLInputElement>(null);
-  const [stage, setStage] = useState<"email" | "preferences" | "done">("email");
+  const [stage, setStage] = useState<"email" | "done">("email");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [city, setCity] = useState("prefer-not-to-say");
-  const [chosen, setChosen] = useState<string[]>([]);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const activeRequest = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const refs = params.getAll("ref");
-    const code =
-      refs.length === 1 && /^[A-Za-z0-9_-]{16}$/.test(refs[0])
-        ? refs[0]
-        : undefined;
-    setReferralCode(code);
-    if (code) setInviteCode(code);
-  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,7 +47,7 @@ export function WaitlistForm() {
 
   useEffect(() => () => activeRequest.current?.abort(), []);
 
-  function changeStage(next: "preferences" | "done") {
+  function changeStage(next: "done") {
     setError("");
     setStage(next);
     requestAnimationFrame(() => titleRef.current?.focus());
@@ -90,13 +64,6 @@ export function WaitlistForm() {
       emailRef.current?.focus();
       return;
     }
-    if (inviteCode.trim() && !/^[A-Za-z0-9_-]{16}$/.test(inviteCode.trim())) {
-      setError(
-        "Check your invite code — it should have 16 letters, numbers, dashes or underscores. You can also leave it blank.",
-      );
-      inviteRef.current?.focus();
-      return;
-    }
     const form = new FormData(event.currentTarget);
     setBusy(true);
     const controller = new AbortController();
@@ -110,7 +77,6 @@ export function WaitlistForm() {
         body: JSON.stringify({
           email: email.trim(),
           website: form.get("website") || "",
-          ...(inviteCode.trim() ? { referralCode: inviteCode.trim() } : {}),
         }),
       });
       const result = await response.json();
@@ -125,7 +91,7 @@ export function WaitlistForm() {
         return;
       }
       setEmail("");
-      changeStage("preferences");
+      changeStage("done");
     } catch {
       setError(
         "We couldn’t connect. Check your connection and try again — your email is still here.",
@@ -136,39 +102,6 @@ export function WaitlistForm() {
       setBusy(false);
     }
   }
-  async function savePreferences(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (busy) return;
-    setBusy(true);
-    setError("");
-    const controller = new AbortController();
-    activeRequest.current = controller;
-    const timer = setTimeout(() => controller.abort(), 15000);
-    try {
-      const response = await fetch("/api/waitlist/preferences", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({ city, interests: chosen }),
-      });
-      const result = await response.json();
-      if (activeRequest.current !== controller) return;
-      if (!response.ok || result.ok !== true) throw new Error("preferences");
-      changeStage("done");
-    } catch {
-      if (activeRequest.current !== controller) return;
-      setError(
-        "We couldn’t save those details. Your signup is safe — try again or skip this step.",
-      );
-    } finally {
-      clearTimeout(timer);
-      if (activeRequest.current === controller) {
-        activeRequest.current = null;
-        setBusy(false);
-      }
-    }
-  }
-
   if (stage === "done")
     return (
       <div className="signup-success" role="status">
@@ -176,99 +109,16 @@ export function WaitlistForm() {
           <Icon name="check" />
         </span>
         <h3 ref={titleRef} tabIndex={-1}>
-          Here’s to your next first.
+          Check your inbox to confirm your place.
         </h3>
         <p>
-          Your request is saved. If this address can join, we’ll send a
-          confirmation email. Confirm it to receive your welcome and launch
-          updates, plus your own invite link to share. Delivery may take a few
-          minutes.
+          If this address can join, we’ll send a confirmation email. Delivery
+          may take a few minutes.
         </p>
         <a className="text-link" href="#activity-ideas">
           Browse ideas for my list <Icon name="arrow" />
         </a>
       </div>
-    );
-
-  if (stage === "preferences")
-    return (
-      <form className="preferences" onSubmit={savePreferences}>
-        <span className="success-eyebrow">
-          <Icon name="check" /> Request saved
-        </span>
-        <h3 ref={titleRef} tabIndex={-1}>
-          What’s your kind of fun?
-        </h3>
-        <p>
-          Check your inbox to confirm your email. While you wait, you can add a
-          couple of optional details for your new signup.
-        </p>
-        <label className="field-label" htmlFor={`${id}-city`}>
-          Your city <span>(optional)</span>
-        </label>
-        <select
-          id={`${id}-city`}
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          disabled={busy}
-        >
-          <option value="prefer-not-to-say">Prefer not to say</option>
-          <option value="lagos">Lagos</option>
-          <option value="abuja">Abuja</option>
-          <option value="ibadan">Ibadan</option>
-          <option value="port-harcourt">Port Harcourt</option>
-          <option value="elsewhere">Somewhere else</option>
-        </select>
-        <fieldset disabled={busy}>
-          <legend>
-            Things you’d like to try <span>(optional)</span>
-          </legend>
-          <div className="interest-options">
-            {interests.map(([value, label]) => (
-              <label key={value} className="interest-option">
-                <input
-                  type="checkbox"
-                  value={value}
-                  checked={chosen.includes(value)}
-                  onChange={(e) =>
-                    setChosen((current) =>
-                      e.target.checked
-                        ? [...current, value]
-                        : current.filter((item) => item !== value),
-                    )
-                  }
-                />
-                <span>{label}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <div id={`${id}-error`} role="alert" className="form-error">
-          {error}
-        </div>
-        <div className="preference-actions">
-          <button
-            className="button button-yellow"
-            disabled={busy}
-            type="submit"
-          >
-            {busy ? "Saving…" : "Done"}
-            <Icon name="check" />
-          </button>
-          <button
-            className="skip-button"
-            type="button"
-            onClick={() => {
-              activeRequest.current?.abort();
-              activeRequest.current = null;
-              setBusy(false);
-              changeStage("done");
-            }}
-          >
-            Skip for now
-          </button>
-        </div>
-      </form>
     );
 
   return (
@@ -306,41 +156,10 @@ export function WaitlistForm() {
           type="submit"
           disabled={!enabled || busy}
         >
-          {busy ? "Joining…" : "Join the waitlist"}
+          {busy ? "Joining…" : "Notify me at launch"}
           <Icon name="arrow" />
         </button>
       </div>
-      <details
-        className="invite-code-entry"
-        open={referralCode ? true : undefined}
-      >
-        <summary>
-          {referralCode ? "You’ve been invited" : "Have an invite code?"}
-        </summary>
-        <label htmlFor={`${id}-invite`}>
-          Invite code <span>(optional)</span>
-        </label>
-        <input
-          ref={inviteRef}
-          id={`${id}-invite`}
-          name="referralCode"
-          type="text"
-          maxLength={16}
-          autoComplete="off"
-          autoCapitalize="none"
-          spellCheck={false}
-          value={inviteCode}
-          onChange={(event) => {
-            setInviteCode(event.target.value);
-            setError("");
-          }}
-          disabled={!enabled || busy}
-          aria-describedby={`${id}-invite-note ${id}-error`}
-        />
-        <p id={`${id}-invite-note`}>
-          Use a friend’s code or leave this blank. Your email stays private.
-        </p>
-      </details>
       <div className="honeypot" aria-hidden="true">
         <label htmlFor={`${id}-website`}>Website</label>
         <input
@@ -357,8 +176,8 @@ export function WaitlistForm() {
       <p id={`${id}-notice`} className="form-note" aria-live="polite">
         {enabled ? (
           <>
-            We’ll email a confirmation, welcome, project updates and launch
-            news. Unsubscribe any time. <a href="/privacy">Privacy notice</a>.
+            We’ll email a confirmation and a launch notification. Unsubscribe
+            any time. <a href="/privacy">Privacy notice</a>.
           </>
         ) : (
           <>

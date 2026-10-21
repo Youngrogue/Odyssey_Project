@@ -270,7 +270,7 @@ describe("durable email lifecycle", () => {
     ).toEqual([{ n: 1 }]);
     await db.close();
   });
-  it("GET renders without confirming, explicit confirmation replay queues one welcome", async () => {
+  it("GET renders without confirming, explicit confirmation replay queues no welcome", async () => {
     const db = await setup();
     await Confirm({
       searchParams: Promise.resolve({ token: (await tokens(db)).token }),
@@ -286,7 +286,7 @@ describe("durable email lifecycle", () => {
           "SELECT count(*)::int AS n FROM waitlist_outbox WHERE kind='welcome'",
         )
       ).rows,
-    ).toEqual([{ n: 1 }]);
+    ).toEqual([{ n: 0 }]);
     await db.close();
   });
   it("expired confirmation cannot subscribe", async () => {
@@ -319,13 +319,13 @@ describe("durable email lifecycle", () => {
     ).toEqual({ n: 3 });
     await db.close();
   });
-  it("unsubscribe cancels welcome, blocks capture after purge and late delivery cannot undo it", async () => {
+  it("unsubscribe retains original confirmation token and cancels mail, blocks capture after purge and late delivery cannot undo it", async () => {
     const db = await setup();
     await confirm(db);
     await act(db, {
       ...input,
       kind: "unsubscribe",
-      token: (await tokens(db, "welcome")).unsubscribeToken,
+      token: (await tokens(db)).unsubscribeToken,
     });
     await applyEvent(
       db,
@@ -372,16 +372,18 @@ describe("durable email lifecycle", () => {
   });
   it("parks ambiguous attempts beyond provider window and exhausted attempts", async () => {
     const db = await setup();
-    await confirm(db);
     await db.query(
-      "UPDATE waitlist_outbox SET first_attempt_at=now()-interval '25 hours',attempts=1 WHERE kind='welcome'",
+      "UPDATE waitlist_outbox SET first_attempt_at=now()-interval '25 hours',attempts=1 WHERE kind='confirmation'",
     );
     const send = accepted();
     await drain(db, config, send);
     expect(send).not.toHaveBeenCalled();
     expect(
-      (await db.query("SELECT state FROM waitlist_outbox WHERE kind='welcome'"))
-        .rows[0],
+      (
+        await db.query(
+          "SELECT state FROM waitlist_outbox WHERE kind='confirmation'",
+        )
+      ).rows[0],
     ).toEqual({ state: "parked" });
     await db.close();
   });

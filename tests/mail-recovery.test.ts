@@ -204,7 +204,7 @@ describe("durable idle-aware recovery", () => {
     }
   });
 
-  it("arms signup, resend and confirmation work, without requiring another request after their commit", async () => {
+  it("arms signup and resend while confirmation queues no further mail, without requiring another request after their commit", async () => {
     const db = await database();
     const recovery = memoryRecovery();
     bindings.value = { MAIL_RECOVERY: recovery.namespace };
@@ -228,9 +228,9 @@ describe("durable idle-aware recovery", () => {
       ).rows[0];
       const tokens = unseal<{ token: string }>(row.sealed_tokens, input.secret);
       await act(db, { ...input, token: tokens.token, kind: "confirm" });
-      expect((await state()).revision).toBe(3);
+      expect((await state()).revision).toBe(2);
       await act(db, { ...input, token: tokens.token, kind: "confirm" });
-      expect((await state()).revision).toBe(3);
+      expect((await state()).revision).toBe(2);
       const send = vi.fn(async () => Response.json({ id: "sent-welcome" }));
       const harness = scheduler(recovery);
       harness.fetch.mockImplementation(async () => {
@@ -252,7 +252,7 @@ describe("durable idle-aware recovery", () => {
         });
       });
       await runScheduled(cron, harness.env);
-      expect(send).toHaveBeenCalledOnce();
+      expect(send).not.toHaveBeenCalled();
       expect((await state()).dueAt).toBeNull();
     } finally {
       await db.close();
