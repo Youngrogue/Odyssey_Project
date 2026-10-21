@@ -183,10 +183,15 @@ describe("email-only waitlist", () => {
     expect(email.subject).toBe("Confirm your place on the Odyssey waitlist");
     for (const body of [email.text, email.html]) {
       expect(body).toContain("Confirm my email");
+      expect(body).toContain("https://odyssey.soralives.xyz");
       expect(body).toContain("/privacy");
       expect(body).toContain("/waitlist/unsubscribe?token=unsubscribe");
       expect(body).not.toMatch(/Founding Explorer|invite code|welcome email/);
     }
+    expect(email.html).toContain(
+      'src="https://odyssey.soralives.xyz/brand/open-loop-ink.png"',
+    );
+    expect(email.html).toContain('alt="Odyssey logo"');
     expect(() =>
       renderWaitlistEmail("welcome", {
         origin: "https://example.com",

@@ -28,6 +28,7 @@ export function renderWaitlistEmail(kind: EmailKind, input: EmailInput) {
     "This link expires in 24 hours. Didn't request this? Simply ignore this email.",
   ];
   const footer = [
+    { label: "odyssey.soralives.xyz", url: brand.website },
     { label: "Privacy notice", url: `${input.origin}/privacy` },
     ...(input.unsubscribeToken
       ? [
@@ -44,6 +45,6 @@ export function renderWaitlistEmail(kind: EmailKind, input: EmailInput) {
   return {
     subject,
     text: `Odyssey\n\nHi there,\n\n${paragraphs.join("\n\n")}\n\n${label}: ${url}\n\n${footer.map((l) => `${l.label}: ${l.url}`).join("\n")}`,
-    html: `<!doctype html><html><body style="margin:0;background:#F8FAFC;color:#0F172A;font:16px/1.65 Arial,sans-serif"><main style="max-width:560px;margin:32px auto;padding:32px;background:white"><p style="font-weight:bold;color:#0F172A">${escape(brand.name.toUpperCase())}</p><h1 style="font-size:26px;line-height:1.3">${escape(subject)}</h1><p>Hi there,</p>${paragraphs.map((p) => `<p>${escape(p)}</p>`).join("")}<p><a href="${escape(url)}" style="display:inline-block;background:#FACC15;color:#0F172A;padding:14px 22px;border-radius:8px">${label}</a></p><p>— Odyssey</p><footer style="font-size:13px">${footer.map((l) => `<a href="${escape(l.url)}" style="color:#4338CA">${l.label}</a>`).join(" · ")}</footer></main></body></html>`,
+    html: `<!doctype html><html><body style="margin:0;background:#F8FAFC;color:#0F172A;font:16px/1.65 Arial,sans-serif"><main style="max-width:560px;margin:32px auto;padding:32px;background:white"><a href="${escape(brand.website)}" style="text-decoration:none;color:#0F172A"><img src="${escape(brand.website)}/brand/open-loop-ink.png" alt="Odyssey logo" width="56" height="56" style="display:block;width:56px;height:56px;border:0;margin-bottom:12px"><span style="font-weight:bold;color:#0F172A">${escape(brand.name.toUpperCase())}</span></a><h1 style="font-size:26px;line-height:1.3">${escape(subject)}</h1><p>Hi there,</p>${paragraphs.map((p) => `<p>${escape(p)}</p>`).join("")}<p><a href="${escape(url)}" style="display:inline-block;background:#FACC15;color:#0F172A;padding:14px 22px;border-radius:8px">${label}</a></p><p>— Odyssey</p><footer style="font-size:13px">${footer.map((l) => `<a href="${escape(l.url)}" style="color:#4338CA">${l.label}</a>`).join(" · ")}</footer></main></body></html>`,
   };
 }
