@@ -120,7 +120,16 @@ async function confirm(email) {
     method: "POST",
     body: { token: tokens.token },
   });
-  requireThat(confirmed.status === 200 && !confirmed.headers.get("set-cookie"));
+  // Cloudflare Access may renew its perimeter cookie on authenticated staging
+  // requests. The app must still issue no signup/invitation capability cookie.
+  const cookieNames = confirmed.headers
+    .getSetCookie()
+    .map((value) => value.split("=", 1)[0]);
+  console.log(
+    `Confirmation response: HTTP ${confirmed.status}; Access cookie: ${cookieNames.includes("CF_Authorization")}; unexpected cookie count: ${cookieNames.filter((name) => name !== "CF_Authorization").length}`,
+  );
+  requireThat(confirmed.status === 200);
+  requireThat(cookieNames.every((name) => name === "CF_Authorization"));
   await confirmed.body?.cancel();
   const updated = await rowFor(email);
   requireThat(
