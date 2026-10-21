@@ -1,0 +1,31 @@
+name: Diagnose Odyssey Neon transport CPU
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  profile:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Profile SELECT-only local workerd against staging Neon
+        run: node scripts/profile-neon-transport.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: neon-transport-cpu-profiles
+          path: .cloudflare-build/transport-profiles/*.cpuprofile
+          retention-days: 3
