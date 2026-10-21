@@ -114,7 +114,7 @@ jobs:
       - name: Bootstrap the private coordinator only if absent
         run: node scripts/cloudflare-bootstrap.mjs
       - name: Deploy landing
-        run: pnpm exec opennextjs-cloudflare deploy --config .cloudflare-build/landing.json
+        run: pnpm exec wrangler deploy --config .cloudflare-build/landing.json
       - run: node scripts/cloudflare-secrets.mjs landing
       - name: Deploy scheduler
         run: pnpm exec wrangler deploy --config .cloudflare-build/scheduler.json

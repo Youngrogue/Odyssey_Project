@@ -47,9 +47,10 @@ const { rawConfig: config } = experimental_readRawConfig({
 });
 config.name = name;
 config.account_id = account;
-config.main = "../.open-next/worker.js";
+config.main = "../cloudflare/landing.ts";
+config.alias = { "@opennextjs/cloudflare": "../cloudflare/request-context.ts" };
 config.assets.directory = "../.open-next/assets";
-config.services[0].service = name;
+config.services = [];
 config.durable_objects = {
   bindings: [
     {
