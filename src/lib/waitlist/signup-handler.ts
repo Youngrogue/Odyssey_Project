@@ -41,31 +41,35 @@ export async function signupHandler(
 
   try {
     const client = await connectWaitlist();
+    // This invocation's connection is handed to its own post-response send, so
+    // it is still never shared across requests.
+    let handedOff = false;
     try {
-      await saveSignup(client, {
+      const { queued } = await saveSignup(client, {
         email: parsed.email,
         ip: getRateLimitClientIp(request.headers, config.trustedIpHeader),
         secret: config.tokenSecret,
         retentionDays: config.retentionDays,
       });
-    } finally {
-      await client.release();
-    }
-    try {
-      schedule(async () => {
+      // Duplicate, suppressed and capped attempts queue nothing to send; the
+      // public response stays identical either way.
+      if (queued)
         try {
-          const worker = await connectWaitlist();
-          try {
-            await drain(worker, config, fetch, 1);
-          } finally {
-            await worker.release();
-          }
+          schedule(async () => {
+            try {
+              await drain(client, config, fetch, 1, false);
+            } catch {
+              /* Cron recovers committed jobs. */
+            } finally {
+              await client.release().catch(() => {});
+            }
+          });
+          handedOff = true;
         } catch {
-          /* Cron recovers committed jobs. */
+          /* Scheduling failure does not undo committed intake; cron recovers. */
         }
-      });
-    } catch {
-      /* Scheduling failure does not undo committed intake; cron recovers. */
+    } finally {
+      if (!handedOff) await client.release();
     }
     return response(200);
   } catch (error) {

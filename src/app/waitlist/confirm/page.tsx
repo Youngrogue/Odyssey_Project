@@ -39,7 +39,7 @@ export default async function Confirm({
           will send one. Delivery may take a few minutes.
         </p>
       )}
-      {params.done ? (
+      {params.done && !params.error ? (
         <p>
           You're on the list. You'll be among the first to hear when Odyssey
           launches.

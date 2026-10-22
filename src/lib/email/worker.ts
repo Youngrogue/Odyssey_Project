@@ -18,8 +18,10 @@ export async function drain(
   config: MailConfig,
   send: typeof fetch = fetch,
   limit = 3,
+  // The scheduled drain reconciles delivery events; a post-signup send need not.
+  reconcile = true,
 ) {
-  await reconcileDeliveries(db);
+  if (reconcile) await reconcileDeliveries(db);
   let processed = 0;
   for (let i = 0; i < limit; i++) {
     const candidate = await db.query(
@@ -207,6 +209,6 @@ export async function drain(
       throw e;
     }
   }
-  await reconcileDeliveries(db);
+  if (reconcile) await reconcileDeliveries(db);
   return processed;
 }

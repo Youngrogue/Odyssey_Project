@@ -37,7 +37,7 @@ export default async function Unsubscribe({
           will send one. Delivery may take a few minutes.
         </p>
       )}
-      {params.done ? (
+      {params.done && !params.error ? (
         <p>
           Request processed. A valid link stops future waitlist emails. A
           message already being sent may still arrive.

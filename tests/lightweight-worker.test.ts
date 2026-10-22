@@ -52,6 +52,14 @@ describe("lightweight deployed waitlist boundary", () => {
     expect(html).not.toContain('name="token"');
     expect(html).toContain("Request a new link");
   });
+  it("never shows success alongside an error from conflicting query flags", async () => {
+    for (const path of ["/waitlist/confirm", "/waitlist/unsubscribe"]) {
+      const html = await (await request(`${path}?done=1&error=expired`)).text();
+      expect(html).toContain('role="alert"');
+      expect(html).not.toContain("You're on the list");
+      expect(html).not.toContain("Request processed");
+    }
+  });
   it("preserves private HEAD semantics and rejects unsupported action methods", async () => {
     const head = await request("/waitlist/unsubscribe", "HEAD");
     expect(head.status).toBe(200);

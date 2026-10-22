@@ -47,7 +47,7 @@ export async function saveSignup(
     retentionDays: number;
     referralCode?: string;
   },
-): Promise<{ token: string }> {
+): Promise<{ token: string; queued: boolean }> {
   const token = randomBytes(32).toString("base64url");
   await beginMailTransaction(db);
   try {
@@ -60,9 +60,9 @@ export async function saveSignup(
       await db.query("COMMIT");
       throw new WaitlistRateLimitError();
     }
-    await enroll(db, input, token);
+    const queued = await enroll(db, input, token);
     await db.query("COMMIT");
-    return { token };
+    return { token, queued };
   } catch (error) {
     if (!(error instanceof WaitlistRateLimitError))
       await db.query("ROLLBACK").catch(() => undefined);

@@ -26,11 +26,12 @@ export function hasMailRecovery() {
   }
 }
 
+// Bound lock waits and abandoned transactions on this request's connection.
+// set_config(..., true) is SET LOCAL; one statement saves two round trips.
+export const recoveryTimeouts =
+  "SELECT set_config('statement_timeout','10s',true),set_config('idle_in_transaction_session_timeout','15s',true),set_config('transaction_timeout','20s',true)";
 async function setRecoveryTimeouts(db: Queryable) {
-  // Bound lock waits and abandoned transactions on this request's connection.
-  await db.query("SET LOCAL statement_timeout = '10s'");
-  await db.query("SET LOCAL idle_in_transaction_session_timeout = '15s'");
-  await db.query("SET LOCAL transaction_timeout = '20s'");
+  await db.query(recoveryTimeouts);
 }
 
 export async function beginMailTransaction(db: Queryable) {

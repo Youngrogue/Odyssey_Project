@@ -24,9 +24,9 @@ export async function enroll(
     referralCode?: string;
   },
   cap: string,
-) {
+): Promise<boolean> {
   await lockAddress(db, input.secret, input.email);
-  if (await isSuppressed(db, input.secret, input.email)) return;
+  if (await isSuppressed(db, input.secret, input.email)) return false;
   const confirm = token(),
     unsub = token();
   const r = await db.query(
@@ -49,15 +49,17 @@ export async function enroll(
       digest(input.secret, "suppression", input.email),
     ],
   );
-  if (r.rows[0])
-    await queueConfirmation(
-      db,
-      r.rows[0],
-      input.email,
-      input.secret,
-      confirm,
-      unsub,
-    );
+  return Boolean(
+    r.rows[0] &&
+      (await queueConfirmation(
+        db,
+        r.rows[0],
+        input.email,
+        input.secret,
+        confirm,
+        unsub,
+      )),
+  );
 }
 async function queueConfirmation(
   db: Queryable,
@@ -67,7 +69,8 @@ async function queueConfirmation(
   confirm: string,
   unsub: string,
 ) {
-  if (!(await daily(db, digest(secret, "confirmation-day", email), 3))) return;
+  if (!(await daily(db, digest(secret, "confirmation-day", email), 3)))
+    return false;
   await armMailRecovery(db);
   await db.query(
     `INSERT INTO waitlist_unsubscribe_tokens(token_hash,signup_id) VALUES($1,$2) ON CONFLICT DO NOTHING`,
@@ -94,6 +97,7 @@ async function queueConfirmation(
       seal({ token: confirm, unsubscribeToken: unsub }, secret),
     ],
   );
+  return true;
 }
 export async function resend(
   db: Queryable,

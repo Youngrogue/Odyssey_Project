@@ -115,6 +115,10 @@ export function WaitlistForm() {
           If this address can join, we’ll send a confirmation email. Delivery
           may take a few minutes.
         </p>
+        <p>
+          Not there? Check spam or promotions, or{" "}
+          <a href="/waitlist/confirm">request a new link</a>.
+        </p>
         <a className="text-link" href="#activity-ideas">
           Browse ideas for my list <Icon name="arrow" />
         </a>

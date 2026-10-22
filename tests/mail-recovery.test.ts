@@ -20,6 +20,7 @@ vi.mock("@opennextjs/cloudflare", () => ({
 import {
   beginMailTransaction,
   nextMailRecovery,
+  recoveryTimeouts,
 } from "../src/lib/email/recovery";
 import { saveSignup } from "../src/lib/waitlist/store";
 import { act, resend } from "../src/lib/email/lifecycle";
@@ -75,12 +76,7 @@ describe("durable idle-aware recovery", () => {
       return { rows: [] };
     });
     await beginMailTransaction({ query });
-    expect(calls).toEqual([
-      "BEGIN",
-      "SET LOCAL statement_timeout = '10s'",
-      "SET LOCAL idle_in_transaction_session_timeout = '15s'",
-      "SET LOCAL transaction_timeout = '20s'",
-    ]);
+    expect(calls).toEqual(["BEGIN", recoveryTimeouts]);
     calls.length = 0;
     query.mockImplementation(async (sql: string) => {
       calls.push(sql);
@@ -91,12 +87,7 @@ describe("durable idle-aware recovery", () => {
     await expect(saveSignup({ query }, input)).rejects.toThrow(
       "Timeout setup failed",
     );
-    expect(calls).toEqual([
-      "BEGIN",
-      "SET LOCAL statement_timeout = '10s'",
-      "SET LOCAL idle_in_transaction_session_timeout = '15s'",
-      "ROLLBACK",
-    ]);
+    expect(calls).toEqual(["BEGIN", recoveryTimeouts, "ROLLBACK"]);
   });
 
   it("reconciles a new namespace once, preserves state on restart, and never connects to Neon while idle", async () => {

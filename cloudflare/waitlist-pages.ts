@@ -28,7 +28,8 @@ export function renderWaitlistPage(url: URL) {
     if (params.has("resent"))
       body +=
         "<p>Request saved. If this address can receive a new confirmation link, we will send one. Delivery may take a few minutes.</p>";
-    if (params.has("done"))
+    // An error always wins: conflicting flags must never also claim success.
+    if (params.has("done") && !error)
       body += confirm
         ? "<p>You're on the list. You'll be among the first to hear when Odyssey launches.</p>"
         : "<p>Request processed. A valid link stops future waitlist emails. A message already being sent may still arrive.</p>";
