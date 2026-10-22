@@ -2,6 +2,10 @@
 
 ## Current scope
 
+**22 October owner handoff:** [Claude implementation prompt](CLAUDE_WAITLIST_LAUNCH_HANDOFF_2026-10-22.md) records the narrowed finish line (working email collection and private counts), current access/deployment evidence, unverified reporting drafts and remaining CPU work. The owner requested Claude take over; Codex stopped implementation without deploying or enabling collection. Broader optimization remains deferred. The first draft stats test timed out at the default five-second test limit; it has not passed validation.
+
+**Review follow-up:** [21 October deployment and optimisation recommendations](OPTIMISATION_REVIEW_2026-10-21.md) records additional confirmation-state, recovery, release-control and monitoring work. These are open recommendations, not implemented corrections. Product clarity and discovery remains open.
+
 The owner approved implementing the simplified flow directly: email submission → one confirmation email → explicit confirmation → waitlist acceptance. The launch notification is a future campaign; this release does not send a second welcome email. No accounts, invitation codes, referral progress, Founding Explorer badge or preference questionnaire are offered in the landing signup journey. The existing discovery UI, videos, local Bucket list, activity/trophy illustrations and responsive improvements remain.
 
 This supersedes older referral/welcome acceptance steps in the launch documents. Historical migrations, subscriber records and referral fields are preserved. New enrollments do not create referral attribution or recognition. Legacy invite routes no longer expose private progress; queued legacy welcome jobs are cancelled before quota reservation or provider dispatch. Existing sealed confirmation requests retain their original bytes for provider retry idempotency.
@@ -80,3 +84,78 @@ That runtime investigation is now implemented at `c4d5163`: the existing Worker 
 SELECT-only diagnostic39598313852 compared WebSocket and direct TCP Neon connections in local workerd. Both worked. WebSocket elapsed responses were414–462ms versus TCP656–736ms in that runner; those include network waits and are not billed CPU. Sampling includes long inactive gaps, so summed profile time is not presented as request CPU. The evidence does not justify changing the tested production transport. Profiles are saved outside Git. No database writes, email sends, provider-plan changes or credential changes occurred in the diagnostic.
 
 The next optimisation must address the complete transactional/database-and-mail path, with per-route deployed measurements and preserved locking, budgets, suppression and retries. A low mixed-traffic median alone is not the release criterion. No paid workaround has been enabled. Product clarity and discovery remains Open until the enabled public journey can be verified.
+
+## 22 October production release
+
+**Collection is open at https://odyssey.soralives.xyz.** Release [39833526489](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39833526489) deployed source `190589b46ff402fdd54ddc1224f297203728b2fe` to production with `open_waitlist=true` after full checks. Its first attempt stopped before deployment on one browser assertion (focus on the success heading) that passed on the same SHA in the preceding staging run and locally; the failed job was re-run and passed. Public status returned `{"enabled":true}`; `robots.txt` allows `/` and disallows `/api/` and `/waitlist/`.
+
+What changed since the native staging release, all through GitHub with full CI:
+
+- Fewer database round trips; no post-response send for no-op signups; one request-owned connection for a queued signup's own send ([CPU evidence](CPU_OPTIMIZATION_2026-10-21.md)).
+- Confirmation and unsubscribe pages never show success together with an error. A hand-edited `?done=1` URL can still display success text without changing membership (L03 remainder, deferred).
+- The signup success state links to the existing resend page (L04) and to the optional survey.
+- Optional anonymous interest survey on Tally (`https://tally.so/r/J19WzR`, tagged `?source=site` or `?source=signup`). It is separate from the waitlist and collects no contact details; the privacy notice names Tally (EU-hosted).
+- Read-only aggregate count query `scripts/waitlist-stats.sql`, with tests, and local CLI `scripts/waitlist-stats.mjs`. The draft GitHub report workflow was removed because this public repository's Actions logs are public.
+
+Provider state on 22 October:
+
+- Resend: domain `soralives.xyz` verified, no open/click tracking; usage 4/100 daily and 8/3,000 monthly before the production release. The single webhook (bounced, complained, delivered) was edited from staging to `https://odyssey.soralives.xyz/api/waitlist/webhook`, keeping its signing secret, which the production `RESEND_WEBHOOK_SECRET` was saved from on 21 October. The account also sends for `delphiatlas.com`; quotas are shared.
+- Staging collection was paused first (release [39832493557](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39832493557), same SHA, `open_waitlist=false`).
+- GitHub: production `RELEASE_CHECKS_PASSED=true`, `SITE_INDEXING_ENABLED=true`; repository `CLOUDFLARE_DEPLOY_ENABLED=false` again after each release.
+- Neon: project Odyssey (`flat-dawn-95458128`), production branch, 0.27 CU-hours used since 1 October. Another project in the same organisation (Delphi) is paused at its monthly Free limit; Odyssey is unaffected but shares the organisation.
+- Production baseline before any public signup, 19:03 UTC: 0 retained records, 0 confirmed, 0 pending, 0 queued or parked mail.
+
+Security review: a scoped source review of the changes above (signup connection hand-off, timeout statement, page states, survey links, count/trace/probe scripts) found no new trust-boundary issue. Connections stay within one invocation; the timeout statement is a constant; links are static with `rel="noopener noreferrer"`; tracing and probes print only route labels, statuses and timings; the count query returns aggregates only inside a read-only transaction. This is scoped evidence, not a full audit. The single opt-in follow-up below records the owner's production test.
+
+## Operations
+
+**Check counts (private).** Neon Console → project **Odyssey** → branch **production** → SQL Editor → database `odyssey` → Saved → **Odyssey waitlist counts** → Run. Read:
+
+- `confirmed_members`: the people on the waitlist (joined, unexpired, not unsubscribed or suppressed; each email counted once).
+- `pending_confirmations`: legacy double opt-in rows only; should stay 0 (deleted after 7 days, or upgraded if the person joins again).
+- `active_members_confirmed_today` (Africa/Lagos day) and `active_members_confirmed_last_7_days` (rolling).
+- `queued_emails` (welcome and any legacy confirmation mail) should return to 0 within minutes; a growing number means mail is stuck. `emails_needing_attention` counts parked messages.
+- Delivery columns count messages, not people. These are current retained figures, not lifetime totals.
+
+Never use the staging branch for real counts.
+
+**See who joined (private).** Same SQL Editor → Saved → **Odyssey waitlist members** → Run (source: `scripts/waitlist-members.sql`). It lists each active member's email and join time (Lagos), newest first; unsubscribed, suppressed and expired addresses are excluded. Use the editor's download button for a CSV if needed, and keep exports private.
+
+**Monitor Free CPU.** Cloudflare dashboard → Workers → `odyssey-landing` → Metrics → Errors: any "Exceeded CPU Time Limits" means pause and decide (Workers Paid or the database-function rewrite).
+
+**Pause collection.** Run the release workflow for production with `open_waitlist=false` (set `CLOUDFLARE_DEPLOY_ENABLED=true` first, then back to `false`). Unsubscribe, suppression and cleanup keep working.
+
+**Roll back.** Re-run the release workflow from a reviewed earlier commit. Keep Neon records and signing keys. The webhook stays on production unless staging collection is deliberately reopened; point it back first in that case.
+
+**Credentials to renew.** The Cloudflare deployment token expires on 24 October 2026; the staging Access service token was issued on 18 October for seven days. Renew both with the same scope before the next deployment.
+
+## 22 October follow-up: single opt-in and the action-button fix
+
+**Defect found in the owner's production test.** Pressing **Confirm my email** redirected to `/waitlist/confirm?error=invalid`. The action pages send `Referrer-Policy: no-referrer`, so Chromium posts their native forms with `Origin: null`, and the origin check refused it (HTTP 403, shown as "invalid"). The same defect affected **Unsubscribe me** and **Request a new link**. Earlier acceptance posted JSON with an explicit `Origin` header and never pressed the buttons. Fix: confirm and unsubscribe accept `Origin: null` because the secret token, as with one-click unsubscribe, is what authorizes them; explicit foreign origins are still refused, and signup keeps the strict check. A browser test now presses both buttons and checks the headers Chromium really sends.
+
+**Owner decision: single opt-in.** Submitting the form, with the note "By joining, you agree to get Odyssey emails about our launch. Unsubscribe anytime.", stores a member immediately and queues one branded welcome email. The email explains the idea, says members will be first to know at launch, and links to the survey (`?source=welcome`), the ideas section and the FAQ. A repeat join sends nothing. Only outbox jobs whose semantic key ends in `:welcome-v2` are sendable, so referral-era welcome payloads stay cancelled. Pending rows from the retired flow expire after 7 days unless the person joins again, which upgrades them and sends the welcome. Confirmation links already sent still work; resend requests are inert but rate-limited. Validation, rate limits (20 per hour per IP, 5 per hour per email), the 80-per-day send budget, suppression, signed webhooks and encrypted queue payloads are unchanged.
+
+**Retention.** Members are kept until 30 days after the launch announcement, capped at 730 days (`WAITLIST_RETENTION_DAYS=730`), or until they unsubscribe. Notice version `2026-10-23-single-opt-in`. After the launch announcement, run a bounded deletion of members 30 days later; it is an operational step, not automatic.
+
+**Release.** Source `86a6d56f803a20797afab747ba1d844b3221063e`, production release [39850040031](https://github.com/Youngrogue/Odyssey_Project/actions/runs/39850040031) with full checks, including real PostgreSQL concurrency and 36 browser tests. Status `{"enabled":true}`; the consent note is live. The staging acceptance harness was updated for the new flow but not run, because the shared webhook targets production.
+
+**Owner production test, 22 October (UTC).**
+
+| Step | Evidence |
+| --- | --- |
+| New alias joins (21:02:45) | Member immediately; welcome sent and delivered |
+| Old pending address re-joins (21:04:17) | Upgraded to member (generation 2); its old confirmation job kept, new welcome sent and delivered |
+| Resend delivery webhooks | All calls to `https://odyssey.soralives.xyz/api/waitlist/webhook` show Success; three messages marked delivered |
+| Unsubscribe button from a welcome email | Page showed "Request processed"; the address is excluded from members |
+| Counts at 21:09:24 | 2 retained records, 1 member, 0 pending, 0 queued, 0 needing attention, 3 sent, 3 delivered |
+
+The saved Neon query **Odyssey waitlist counts** was updated to include welcome mail (`queued_emails`).
+
+Readiness for the landing waitlist: **ready**, with the remaining items below kept visible:
+
+- Free-plan CPU tolerance: monitor (see [CPU evidence](CPU_OPTIMIZATION_2026-10-21.md)).
+- The Cloudflare deployment token expires on 24 October 2026; the staging Access token around 25 October.
+- A hand-edited `?done=1` URL can still show success text without changing membership.
+- Contact forwarding for `odyssey@soralives.xyz` was not re-tested in this release.
+
+Product clarity and discovery: **verified** for the landing waitlist journey (public signup, welcome email, survey link, FAQ, privacy notice and unsubscribe observed live). Re-open it when the main app is planned.

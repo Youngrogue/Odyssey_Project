@@ -36,3 +36,23 @@ Profiles are stored outside Git at `../outputs/odyssey-cpu-2026-10-21/`. Securit
 ## Rollout and rollback
 
 Deploy through the existing checked GitHub workflow to protected staging first. Keep production collection closed. Reuse the controlled owner inbox acceptance, verify the scheduler still recovers committed work and compare the exact new active Worker version's CPU. Open production only after all required gates pass; otherwise record the remaining blocker without upgrading or stripping safeguards. Rollback uses the prior reviewed release via GitHub, preserving Neon records and signing keys.
+
+## 22 October: per-route measurement and launch decision
+
+Measured with `wrangler tail` during staging runs; only route labels, status and timings were printed ([summariser](scripts/summarize-tail-cpu.mjs)). CPU is per invocation and includes post-response `waitUntil` work.
+
+| Route | Before (`6e0f0c00`) | After round-trip reduction (`09276a05`) |
+| --- | --- | --- |
+| Static pages, status, GET action pages | 0–2 ms | 0–1 ms |
+| Confirm / unsubscribe | 8–12 ms | 7–8 ms (one cold 25 ms) |
+| New signup (includes confirmation send) | 47 ms | 41 ms |
+| Duplicate signup | 32 ms | 23 ms |
+| Resend (queues replacement) | 24 ms | 23 ms |
+| Signed delivery webhook | 11–24 ms | 9–18 ms |
+| Recovery drain via scheduler | 23–57 ms | 50 ms |
+
+Changes in `db86666`: one `set_config` statement replaces three `SET LOCAL` round trips; duplicate, suppressed and capped signups skip the post-response send; a queued signup reuses its own request connection for that send and skips delivery reconciliation (the scheduler still reconciles). Locking order, suppression, budgets, retries and the 23-hour horizon are unchanged; full CI including real PostgreSQL concurrency passed.
+
+An email-free probe ([workflow](.github/workflows/probe-staging-cpu.yml), 10 interleaved rounds) isolated the cost: status 0–2 ms; unknown-token confirm (~5 queries) 6–12 ms; rate-limited resend (~5 queries) 7–9 ms; resend running address checks (~8 queries) 11–15 ms. Connection setup is cheap; each query costs roughly 1–1.5 ms of JavaScript driver work at this traffic level. Neon over Workers TCP sockets (`pg`) measured the same (confirm ~9 ms, resend ~13 ms), so that experiment was reverted (`fd36dae`).
+
+No traced invocation (about 150, up to 57 ms) ended with `exceededCpu`. Cloudflare documents isolate flexibility for infrequent overruns but may terminate a Worker that exceeds consistently. Bringing signup under 10 ms would need each transaction moved into a single database call (PL/pgSQL functions or Neon HTTP), a larger rewrite. **Owner decision (22 October): open production on the Free plan and monitor.** Signals: Cloudflare Worker metrics "Exceeded CPU Time Limits" and the private count's `queued_emails`. If either rises, pause collection and choose Workers Paid or the database-function rewrite.
