@@ -8,7 +8,7 @@ export async function connectWaitlist(): Promise<
 > {
   const connectionString = databaseConnectionString();
   if (!connectionString) throw new Error("Database unavailable");
-  let client: PostgresClient | undefined;
+  let client: PostgresClient | NeonClient | undefined;
   try {
     const hostname = new URL(connectionString).hostname;
     const Client =
