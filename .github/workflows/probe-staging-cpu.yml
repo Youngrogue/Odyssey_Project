@@ -1,0 +1,43 @@
+name: Probe Odyssey staging CPU without email
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: odyssey-Check and release Odyssey-refs/heads/main
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Raw tail output stays on the runner; only route labels and timings are printed.
+      - name: Trace staging Worker CPU
+        run: |
+          nohup pnpm exec wrangler tail odyssey-landing-staging --format json > "$RUNNER_TEMP/landing.tail" 2>/dev/null &
+          sleep 20
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Probe interleaved routes
+        run: node scripts/probe-staging-cpu.mjs
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+      - name: Summarise Worker CPU by route
+        if: always()
+        run: |
+          sleep 20
+          pkill -f "wrangler tail" || true
+          node scripts/summarize-tail-cpu.mjs "$RUNNER_TEMP"/*.tail
