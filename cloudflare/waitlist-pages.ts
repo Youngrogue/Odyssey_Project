@@ -17,8 +17,8 @@ export function renderWaitlistPage(url: URL) {
       : error === "unavailable"
         ? "This action is temporarily unavailable. Please try again later."
         : error === "expired"
-          ? "This confirmation link has expired, has already been used or is no longer valid. Request a new one below if needed."
-          : "We could not process that request. Please use your email link or request a new one.";
+          ? "This confirmation link has expired, has already been used or is no longer valid. You can join again on the homepage."
+          : "We could not process that request. Please use the link in your email, or join again on the homepage.";
   let body = "";
   if (invite)
     body =
@@ -44,7 +44,7 @@ export function renderWaitlistPage(url: URL) {
     }
     if (confirm)
       body +=
-        '<p><a href="/#activity-ideas">Return to exploring Odyssey</a></p><h2>Need a new link?</h2><p>Confirmation links expire after 24 hours. If this address can receive another link, we will queue one.</p><form action="/api/waitlist/resend" method="post"><label for="email">Email</label><input id="email" type="email" name="email" autocomplete="email" required maxlength="254"><input type="hidden" name="website" value=""><button type="submit">Request a new link</button></form>';
+        '<p>Confirmation links are no longer sent. If yours has expired, simply join again on the homepage.</p><p><a href="/#activity-ideas">Return to exploring Odyssey</a></p>';
   }
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><title>${title} · Odyssey</title><link rel="stylesheet" href="/waitlist-shell.css"></head><body><main><a class="brand" href="/"><img src="/brand/open-loop-ink.png" alt="" width="40" height="40">Odyssey</a><h1>${title}</h1>${body}<p><a href="/privacy">Privacy notice</a></p></main></body></html>`;
 }

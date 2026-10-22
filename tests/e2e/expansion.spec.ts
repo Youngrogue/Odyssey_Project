@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { isAllowedOrigin } from "../../src/lib/waitlist/validation";
 const preview = "http://127.0.0.1:43217";
 test("mobile discovery has keyboard controls and a complete View all alternative", async ({
   page,
@@ -299,3 +300,38 @@ test("email action pages are accessible and opening them does not submit", async
   }
   expect(mutations).toEqual([]);
 });
+
+// Regression: no-referrer action pages make the browser post `Origin: null`.
+// The real headers a browser sends must pass the server's origin check.
+for (const [path, button, kind] of [
+  ["/waitlist/confirm?token=" + "a".repeat(43), "Confirm my email", "confirm"],
+  [
+    "/waitlist/unsubscribe?token=" + "b".repeat(43),
+    "Unsubscribe me",
+    "unsubscribe",
+  ],
+] as const)
+  test(`${button} button sends headers the origin check accepts`, async ({
+    page,
+  }) => {
+    let headers: Record<string, string> | undefined;
+    await page.route(`**/api/waitlist/${kind}`, async (route) => {
+      headers = await route.request().allHeaders();
+      await route.fulfill({
+        status: 303,
+        headers: { Location: `/waitlist/${kind}?error=unavailable` },
+      });
+    });
+    await page.goto(path);
+    await page.getByRole("button", { name: button }).click();
+    await page.waitForURL(`**/waitlist/${kind}?error=unavailable`);
+    expect(headers).toBeDefined();
+    // Chromium posts `Origin: null` from these no-referrer pages; the action
+    // handler accepts that for token-authorized confirm/unsubscribe only.
+    const origin = new URL(page.url()).origin;
+    expect([origin, "null"]).toContain(headers!.origin);
+    expect(
+      headers!.origin === "null" ||
+        isAllowedOrigin(headers!.origin, null, origin),
+    ).toBe(true);
+  });

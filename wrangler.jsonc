@@ -19,7 +19,7 @@
     "SITE_INDEXING_ENABLED": "false",
     "PRIVACY_OPERATOR_NAME": "Tobi Arogunmati",
     "PRIVACY_CONTACT_EMAIL": "odyssey@soralives.xyz",
-    "WAITLIST_RETENTION_DAYS": "180",
+    "WAITLIST_RETENTION_DAYS": "730",
     "WAITLIST_PENDING_RETENTION_DAYS": "7",
     "WAITLIST_EMAIL_FROM": "odyssey@soralives.xyz",
     "WAITLIST_DAILY_SEND_BUDGET": "80",

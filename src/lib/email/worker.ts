@@ -2,7 +2,7 @@ import { beginMailTransaction } from "./recovery";
 import { lockAddress, isSuppressed } from "./locking";
 import { reconcileDeliveries } from "./webhook";
 import type { Queryable } from "../waitlist/store";
-import { daily } from "./lifecycle";
+import { daily, WELCOME_KEY_SUFFIX } from "./lifecycle";
 import { seal, unseal } from "./security";
 import { renderWaitlistEmail, type EmailKind } from "./templates";
 export type MailConfig = {
@@ -57,8 +57,12 @@ export async function drain(
         await db.query("ROLLBACK");
         continue;
       }
+      const sendable =
+        job.kind === "confirmation" ||
+        (job.kind === "welcome" &&
+          String(job.semantic_key).endsWith(WELCOME_KEY_SUFFIX));
       if (
-        job.kind !== "confirmation" ||
+        !sendable ||
         (await isSuppressed(
           db,
           config.tokenSecret,
@@ -101,7 +105,7 @@ export async function drain(
         break;
       }
       const tokens = unseal<{
-        token: string;
+        token?: string;
         unsubscribeToken: string;
         inviteToken?: string;
       }>(String(job.sealed_tokens), config.tokenSecret);

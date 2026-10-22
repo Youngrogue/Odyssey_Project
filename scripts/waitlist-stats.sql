@@ -14,11 +14,11 @@ WITH eligible AS (
   FROM eligible
 ), delivery AS (
   SELECT
-    count(*) FILTER (WHERE o.state='queued') AS queued_confirmation_emails,
+    count(*) FILTER (WHERE o.state='queued') AS queued_emails,
     count(*) FILTER (WHERE o.state='parked') AS emails_needing_attention,
     count(*) FILTER (WHERE o.state='sent') AS provider_accepted_emails_retained,
     count(*) FILTER (WHERE o.delivered_at IS NOT NULL) AS delivered_emails_retained
-  FROM waitlist_outbox o WHERE o.kind='confirmation'
+  FROM waitlist_outbox o WHERE o.kind IN ('confirmation','welcome')
 )
 SELECT now() AS snapshot_at,
   (SELECT count(*) FROM waitlist_signups) AS retained_subscriber_records,

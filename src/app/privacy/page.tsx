@@ -51,10 +51,11 @@ export default function PrivacyPage() {
         </p>
         <h2>What joining means</h2>
         <p>
-          When signups are open, we collect your email to request confirmation
-          that you want a launch notification. We send one confirmation email.
-          Joining does not create an app account or a public profile, and does
-          not subscribe you to a broader newsletter.
+          When signups are open, submitting your email adds you to the waitlist
+          and is your agreement to receive Odyssey emails about our launch: a
+          welcome email when you join, then a launch email when Odyssey is
+          ready. Joining does not create an app account or a public profile,
+          and does not subscribe you to a broader newsletter.
         </p>
         <h2>What we store and who processes it</h2>
         <p>
@@ -89,13 +90,10 @@ export default function PrivacyPage() {
           waitlist. Historical records follow the same retention and deletion
           policy as the associated signup.
         </p>
-        <h2>Confirmation and unsubscribe</h2>
+        <h2>Unsubscribe</h2>
         <p>
-          Confirmation links expire after 24 hours. You can request another
-          link, subject to limits that help prevent unwanted mail. Opening a
-          confirmation page alone does not subscribe you; choose “Confirm my
-          email” to continue. Receiving a confirmation request does not mean an
-          app account exists.
+          Earlier signups were asked to confirm by email. Those confirmation
+          links still work until they expire; we no longer send them.
         </p>
         <p>
           Each email includes an unsubscribe link. You do not need to sign in.
@@ -116,11 +114,13 @@ export default function PrivacyPage() {
               acting.
             </p>
             <p>
-              Unconfirmed signup records expire after {pendingDays} days.
-              Confirmed records expire {privacy.retentionDays} days after
-              confirmation. The daily cleanup removes expired records and their
-              associated email jobs. Signing up does not transfer your data into
-              a future app account.
+              We keep your email until 30 days after we send the launch
+              announcement, and no longer than {privacy.retentionDays} days
+              after you join, unless you unsubscribe sooner. Unconfirmed
+              records from the earlier confirmation flow expire after{" "}
+              {pendingDays} days. The daily cleanup removes expired records and
+              their associated email jobs. Signing up does not transfer your
+              data into a future app account.
             </p>
           </>
         ) : (

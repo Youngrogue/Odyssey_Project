@@ -29,8 +29,8 @@ export default async function Confirm({
             : params.error === "unavailable"
               ? "This action is temporarily unavailable. Please try again later."
               : params.error === "expired"
-                ? "This confirmation link has expired, has already been used or is no longer valid. Request a new one below if needed."
-                : "We could not process that request. Please use your email link or request a new one."}
+                ? "This confirmation link has expired, has already been used or is no longer valid. You can join again on the homepage."
+                : "We could not process that request. Please use the link in your email, or join again on the homepage."}
         </p>
       )}
       {params.resent && (
@@ -49,7 +49,7 @@ export default async function Confirm({
           <p>
             {valid
               ? "Choose the button below to confirm that you want a launch notification. Opening this page alone does not subscribe you."
-              : "Open the confirmation link in your email, or request a new one below. Opening this page alone does not subscribe you."}
+              : "Open the confirmation link in your email. Opening this page alone does not subscribe you."}
           </p>
           {valid && (
             <form action="/api/waitlist/confirm" method="post">
@@ -64,20 +64,10 @@ export default async function Confirm({
       <p>
         <a href="/#activity-ideas">Return to exploring Odyssey</a>
       </p>
-      <h2>Need a new link?</h2>
       <p>
-        Confirmation links expire after 24 hours. If this address can receive
-        another link, we will queue one.
+        Confirmation links are no longer sent. If yours has expired, simply
+        join again on the homepage.
       </p>
-      <form action="/api/waitlist/resend" method="post">
-        <label>
-          Email <input type="email" name="email" required maxLength={254} />
-        </label>
-        <input type="hidden" name="website" value="" />
-        <button className="button" type="submit">
-          Request a new link
-        </button>
-      </form>
       <p>
         <a href="/privacy">Privacy notice</a>
       </p>

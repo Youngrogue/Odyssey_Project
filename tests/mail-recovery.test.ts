@@ -23,10 +23,9 @@ import {
   recoveryTimeouts,
 } from "../src/lib/email/recovery";
 import { saveSignup } from "../src/lib/waitlist/store";
-import { act, resend } from "../src/lib/email/lifecycle";
+import { resend } from "../src/lib/email/lifecycle";
 import { applyEvent, reconcileDeliveries } from "../src/lib/email/webhook";
 import { drain } from "../src/lib/email/worker";
-import { unseal } from "../src/lib/email/security";
 
 afterEach(() => {
   bindings.value = undefined;
@@ -195,7 +194,7 @@ describe("durable idle-aware recovery", () => {
     }
   });
 
-  it("arms signup and resend while confirmation queues no further mail, without requiring another request after their commit", async () => {
+  it("arms recovery once per join; repeat joins and resends arm nothing; the scheduler sends the welcome without another request", async () => {
     const db = await database();
     const recovery = memoryRecovery();
     bindings.value = { MAIL_RECOVERY: recovery.namespace };
@@ -205,23 +204,8 @@ describe("durable idle-aware recovery", () => {
       await saveSignup(db, input);
       expect((await state()).revision).toBe(1);
       await saveSignup(db, input);
-      await resend(db, input); // Cooldown: no new job.
-      expect((await state()).revision).toBe(1);
-      await db.query(
-        "UPDATE waitlist_signups SET last_confirmation_at=now()-interval '2 minutes'",
-      );
       await resend(db, input);
-      expect((await state()).revision).toBe(2);
-      const row = (
-        await db.query<{ sealed_tokens: string }>(
-          "SELECT sealed_tokens FROM waitlist_outbox WHERE state='queued'",
-        )
-      ).rows[0];
-      const tokens = unseal<{ token: string }>(row.sealed_tokens, input.secret);
-      await act(db, { ...input, token: tokens.token, kind: "confirm" });
-      expect((await state()).revision).toBe(2);
-      await act(db, { ...input, token: tokens.token, kind: "confirm" });
-      expect((await state()).revision).toBe(2);
+      expect((await state()).revision).toBe(1);
       const send = vi.fn(async () => Response.json({ id: "sent-welcome" }));
       const harness = scheduler(recovery);
       harness.fetch.mockImplementation(async () => {
@@ -243,7 +227,7 @@ describe("durable idle-aware recovery", () => {
         });
       });
       await runScheduled(cron, harness.env);
-      expect(send).not.toHaveBeenCalled();
+      expect(send).toHaveBeenCalledTimes(1);
       expect((await state()).dueAt).toBeNull();
     } finally {
       await db.close();

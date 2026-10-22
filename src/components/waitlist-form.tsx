@@ -110,15 +110,12 @@ export function WaitlistForm() {
           <Icon name="check" />
         </span>
         <h3 ref={titleRef} tabIndex={-1}>
-          Check your inbox to confirm your place.
+          You’re on the list.
         </h3>
         <p>
-          If this address can join, we’ll send a confirmation email. Delivery
-          may take a few minutes.
-        </p>
-        <p>
-          Not there? Check spam or promotions, or{" "}
-          <a href="/waitlist/confirm">request a new link</a>.
+          We’ve sent you a welcome email. It may take a few minutes, so check
+          spam or promotions too. You’ll be among the first to know when
+          Odyssey launches.
         </p>
         <p>
           While you wait, tell us what you&rsquo;d love to do in our{" "}
@@ -192,8 +189,8 @@ export function WaitlistForm() {
       <p id={`${id}-notice`} className="form-note" aria-live="polite">
         {enabled ? (
           <>
-            We’ll email a confirmation and a launch notification. Unsubscribe
-            any time. <a href="/privacy">Privacy notice</a>.
+            By joining, you agree to get Odyssey emails about our launch.
+            Unsubscribe anytime. <a href="/privacy">Privacy notice</a>.
           </>
         ) : (
           <>

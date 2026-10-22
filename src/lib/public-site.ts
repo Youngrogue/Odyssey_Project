@@ -4,5 +4,6 @@ export const publicSite = {
   operatorName: "Tobi Arogunmati",
   contactEmail: "odyssey@soralives.xyz",
   pendingRetentionDays: 7,
-  retentionDays: 180,
+  // Kept until 30 days after the launch announcement, capped at 24 months.
+  retentionDays: 730,
 } as const;

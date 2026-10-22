@@ -2,9 +2,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 import { describe, it, expect } from "vitest";
-import { act, enroll } from "../src/lib/email/lifecycle";
+import { enroll } from "../src/lib/email/lifecycle";
 import { saveSignup } from "../src/lib/waitlist/store";
-import { token, unseal } from "../src/lib/email/security";
+import { token } from "../src/lib/email/security";
 const url = process.env.WAITLIST_TEST_POSTGRES_URL;
 
 // Real competing transactions require two database connections. This never
@@ -32,19 +32,8 @@ describe.skipIf(!url)("two-connection legacy referral intake", () => {
         .sort())
         await a.query(readFileSync(`db/${file}`, "utf8"));
       async function owner(email: string) {
+        // Joining confirms immediately under single opt-in.
         await saveSignup(a, { ...common, email });
-        const job = (
-          await a.query(
-            "SELECT sealed_tokens FROM waitlist_outbox o JOIN waitlist_signups s ON s.id=o.signup_id WHERE s.email=$1 AND o.kind='confirmation'",
-            [email],
-          )
-        ).rows[0];
-        await act(a, {
-          ...common,
-          kind: "confirm",
-          token: unseal<{ token: string }>(job.sealed_tokens, common.secret)
-            .token,
-        });
         return (
           await a.query(
             "SELECT id,referral_code FROM waitlist_signups WHERE email=$1",

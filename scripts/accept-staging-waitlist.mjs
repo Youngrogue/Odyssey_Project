@@ -1,5 +1,5 @@
-// Explicit live acceptance: one owner-controlled inbox alias, two messages,
-// on staging only. Resending tests idle recovery without another signup.
+// Explicit live acceptance: one owner-controlled inbox alias, one welcome
+// message, on staging only. Requires the Resend webhook to target staging.
 // Never prints credentials, recipient addresses, private links or provider payloads.
 import { Client } from "@neondatabase/serverless";
 import { randomBytes } from "node:crypto";
@@ -60,8 +60,8 @@ async function delivered(id, kind) {
   }
   throw new Error("Delivery not established within acceptance window");
 }
-async function confirm(email) {
-  checkpoint = "email-only signup";
+async function join(email) {
+  checkpoint = "single opt-in signup";
   const signup = await request("/api/waitlist", {
     method: "POST",
     body: { email, website: "" },
@@ -70,39 +70,34 @@ async function confirm(email) {
   await signup.body?.cancel();
   const record = await rowFor(email);
   requireThat(
-    record?.state === "pending" &&
+    record?.state === "confirmed" &&
+      record.confirmed_at &&
       !record.founder_recognized_at &&
       !record.referred_by,
   );
-  const queued = await mailFor(record.id, "confirmation");
-  requireThat(queued);
-  let tokens = unseal(
-    queued.sealed_tokens,
-    process.env.WAITLIST_TOKEN_SECRET,
-  );
-  const subscription = { email, id: record.id, tokens };
-  subscriptions.push(subscription);
+  const queued = await mailFor(record.id, "welcome");
+  requireThat(queued && queued.semantic_key.endsWith(":welcome-v2"));
+  const tokens = unseal(queued.sealed_tokens, process.env.WAITLIST_TOKEN_SECRET);
+  subscriptions.push({ email, id: record.id, tokens });
   passed(checkpoint);
 
-  checkpoint = "confirmation delivery and signed acknowledgement";
-  const confirmation = await delivered(record.id, "confirmation");
+  checkpoint = "welcome delivery and signed acknowledgement";
+  const welcome = await delivered(record.id, "welcome");
   const envelope = unseal(
-    confirmation.sealed_request,
+    welcome.sealed_request,
     process.env.WAITLIST_TOKEN_SECRET,
   );
   requireThat(
     envelope.reply_to === "odyssey@soralives.xyz" &&
+      envelope.subject === "Welcome to Odyssey: you're on the list" &&
       envelope.html &&
       envelope.text,
   );
-  requireThat(
-    envelope.subject === "Confirm your place on the Odyssey waitlist",
-  );
-  requireThat(!/Founding Explorer|invite code|referral/i.test(envelope.html));
+  requireThat(!/Founding Explorer|invite code|referral|Confirm my email/i.test(envelope.html));
   requireThat(
     envelope.html.includes('alt="Odyssey logo"') &&
-      envelope.html.includes("https://odyssey.soralives.xyz/brand/open-loop-ink.png") &&
-      envelope.text.includes("https://odyssey.soralives.xyz"),
+      envelope.text.includes("https://tally.so/r/J19WzR?source=welcome") &&
+      envelope.text.includes("https://odyssey.soralives.xyz/#questions"),
   );
   requireThat(
     envelope.headers?.["List-Unsubscribe-Post"] ===
@@ -110,69 +105,7 @@ async function confirm(email) {
   );
   passed(checkpoint);
 
-  checkpoint = "idle recovery after requesting a replacement link";
-  // Respect the production cooldown. No direct DB writes or operator drain:
-  // the resend endpoint only queues work; the deployed recovery must send it.
-  const cooldown = new Date(record.last_confirmation_at).getTime() + 61000 - Date.now();
-  if (cooldown > 0) await new Promise((resolve) => setTimeout(resolve, cooldown));
-  const resent = await request("/api/waitlist/resend", {
-    method: "POST",
-    body: { email, website: "" },
-  });
-  requireThat(resent.status === 200);
-  await resent.body?.cancel();
-  const replacement = await mailFor(record.id, "confirmation");
-  requireThat(replacement && replacement.id !== queued.id);
-  tokens = unseal(replacement.sealed_tokens, process.env.WAITLIST_TOKEN_SECRET);
-  subscription.tokens = tokens;
-  const recovered = await delivered(record.id, "confirmation");
-  requireThat(recovered.id === replacement.id);
-  passed(checkpoint);
-
-  checkpoint = "scanner-safe confirmation link";
-  const link = await request(
-    `/waitlist/confirm?token=${encodeURIComponent(tokens.token)}`,
-  );
-  requireThat(
-    link.status === 200 &&
-      /no-store/.test(link.headers.get("cache-control") ?? ""),
-  );
-  await link.body?.cancel();
-  requireThat((await rowFor(email)).state === "pending");
-  passed(checkpoint);
-
-  checkpoint = "explicit confirmation without app rewards";
-  const confirmed = await request("/api/waitlist/confirm", {
-    method: "POST",
-    body: { token: tokens.token },
-  });
-  // Cloudflare Access may renew its perimeter cookie on authenticated staging
-  // requests. The app must still issue no signup/invitation capability cookie.
-  const cookieNames = confirmed.headers
-    .getSetCookie()
-    .map((value) => value.split("=", 1)[0]);
-  console.log(
-    `Confirmation response: HTTP ${confirmed.status}; Access cookie: ${cookieNames.includes("CF_Authorization")}; unexpected cookie count: ${cookieNames.filter((name) => name !== "CF_Authorization").length}`,
-  );
-  requireThat(confirmed.status === 200);
-  requireThat(cookieNames.every((name) => name === "CF_Authorization"));
-  await confirmed.body?.cancel();
-  const updated = await rowFor(email);
-  requireThat(
-    updated.state === "confirmed" &&
-      !updated.founder_recognized_at &&
-      !updated.invite_token_hash &&
-      !updated.referred_by,
-  );
-  passed(checkpoint);
-
-  checkpoint = "confirmation replay and duplicate signup create no extra mail";
-  const replay = await request("/api/waitlist/confirm", {
-    method: "POST",
-    body: { token: tokens.token },
-  });
-  requireThat(replay.status === 410);
-  await replay.body?.cancel();
+  checkpoint = "duplicate signup creates no extra mail";
   const duplicate = await request("/api/waitlist", {
     method: "POST",
     body: { email, website: "" },
@@ -183,13 +116,19 @@ async function confirm(email) {
     "SELECT count(*)::int AS count FROM waitlist_outbox WHERE signup_id=$1",
     [record.id],
   );
-  requireThat(count.rows[0].count === 2);
+  requireThat(count.rows[0].count === 1);
   passed(checkpoint);
 
-  checkpoint = "original confirmation email can unsubscribe after replacement and confirmation";
+  checkpoint = "scanner-safe unsubscribe page and native unsubscribe";
+  const page = await request(
+    `/waitlist/unsubscribe?token=${encodeURIComponent(tokens.unsubscribeToken)}`,
+  );
+  requireThat(page.status === 200);
+  await page.body?.cancel();
+  requireThat((await rowFor(email)).state === "confirmed");
   const unsub = await request("/api/waitlist/unsubscribe", {
     method: "POST",
-    body: { token: unseal(queued.sealed_tokens, process.env.WAITLIST_TOKEN_SECRET).unsubscribeToken },
+    body: { token: tokens.unsubscribeToken },
   });
   requireThat(unsub.status === 200);
   await unsub.body?.cancel();
@@ -221,9 +160,9 @@ try {
   // Read-only DB inspection; all lifecycle writes go through the deployed site.
   await client.query("SET default_transaction_read_only = on");
   await client.query("SET statement_timeout = '10s'");
-  await confirm(firstEmail);
+  await join(firstEmail);
   console.log(
-    "PASS: deployed staging email-only lifecycle, branded email, signed delivery webhook and idle recovery without another signup. Inbox appearance, tracking, outage/suppression and resource acceptance remain separate checks.",
+    "PASS: deployed staging single opt-in lifecycle, branded welcome email, signed delivery webhook, duplicate handling and unsubscribe. Inbox appearance, tracking, outage/suppression and resource acceptance remain separate checks.",
   );
 } catch {
   console.error(

@@ -15,7 +15,7 @@ it("counts active unique members separately from pending and message deliveries"
       INSERT INTO waitlist_outbox(signup_id,generation,kind,semantic_key,sealed_tokens,state,delivered_at)
       SELECT 2,1,'confirmation',n::text,'fixture','sent',now() FROM generate_series(1,2) n;
       INSERT INTO waitlist_outbox(signup_id,generation,kind,semantic_key,sealed_tokens,state)
-      VALUES (2,1,'confirmation','queued','fixture','queued'),(2,1,'confirmation','parked','fixture','parked');
+      VALUES (2,1,'confirmation','queued','fixture','queued'),(2,1,'confirmation','parked','fixture','parked'),(1,1,'welcome','welcome','fixture','queued');
       -- An older active member counts in total membership but not the recent windows.
       INSERT INTO waitlist_signups(email,notice_version,expires_at,token_hash,token_expires_at,state,confirmed_at,suppression_hash)
       VALUES ('7@example.com','test',now()+interval '170 days','7',now(),'confirmed',now()-interval '8 days','7');`);
@@ -31,7 +31,7 @@ it("counts active unique members separately from pending and message deliveries"
       active_members_confirmed_last_7_days: 1,
       delivered_emails_retained: 2,
       provider_accepted_emails_retained: 2,
-      queued_confirmation_emails: 1,
+      queued_emails: 2,
       emails_needing_attention: 1,
     });
     expect(JSON.stringify(rows)).not.toContain("example.com");

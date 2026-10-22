@@ -156,7 +156,7 @@ test("invalid input, server failure and retry preserve the signup", async ({
   await join.click();
   await expect(
     page.getByRole("heading", {
-      name: "Check your inbox to confirm your place.",
+      name: "You’re on the list.",
     }),
   ).toBeFocused();
 });
@@ -179,7 +179,7 @@ test("email-only signup needs no further profile details", async ({ page }) => {
     .click();
   await expect(
     page.getByRole("heading", {
-      name: "Check your inbox to confirm your place.",
+      name: "You’re on the list.",
     }),
   ).toBeVisible();
   await expect(page.getByLabel("Your city")).toHaveCount(0);

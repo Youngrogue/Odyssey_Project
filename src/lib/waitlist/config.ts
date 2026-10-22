@@ -37,7 +37,7 @@ export function getPublicPrivacyConfig(): PublicPrivacyConfig | null {
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) ||
     !Number.isInteger(retentionDays) ||
     retentionDays < 1 ||
-    retentionDays > 365
+    retentionDays > 730
   )
     return null;
   return { operatorName, contactEmail, retentionDays };

@@ -40,12 +40,9 @@ describe("email-only waitlist", () => {
       parseSignup({ email: input.email, website: "", referralCode: "legacy" }),
     ).toEqual({ email: input.email, honeypot: false });
   });
-  it("confirms without referral, badge, dashboard or welcome and retains original unsubscribe", async () => {
+  it("joins without referral, badge or dashboard and the welcome unsubscribe link works", async () => {
     const { db, tokens } = await setup();
     try {
-      expect(
-        await act(db, { ...input, kind: "confirm", token: tokens.token }),
-      ).toEqual({ confirmed: true });
       expect(
         (
           await db.query(
@@ -65,10 +62,7 @@ describe("email-only waitlist", () => {
             "SELECT count(*)::int n FROM waitlist_outbox WHERE kind='welcome'",
           )
         ).rows,
-      ).toEqual([{ n: 0 }]);
-      expect(
-        await act(db, { ...input, kind: "confirm", token: tokens.token }),
-      ).toEqual({ confirmed: false });
+      ).toEqual([{ n: 1 }]);
       await act(db, {
         ...input,
         kind: "unsubscribe",
@@ -81,18 +75,11 @@ describe("email-only waitlist", () => {
       await db.close();
     }
   });
-  it("returns false for expired confirmation and retired queued welcome never reaches provider", async () => {
-    const { db, tokens } = await setup();
+  it("an unmarked legacy welcome job never reaches the provider", async () => {
+    const { db } = await setup();
     try {
       await db.query(
-        "UPDATE waitlist_signups SET confirmation_expires_at=now()-interval '1 minute'",
-      );
-      expect(
-        await act(db, { ...input, kind: "confirm", token: tokens.token }),
-      ).toEqual({ confirmed: false });
-      await db.query("UPDATE waitlist_signups SET state='confirmed'");
-      await db.query(
-        "UPDATE waitlist_outbox SET kind='welcome',state='queued'",
+        "UPDATE waitlist_outbox SET semantic_key='legacy-welcome'",
       );
       const send = vi.fn<typeof fetch>();
       await drain(
@@ -174,29 +161,41 @@ describe("email-only waitlist", () => {
       await db.close();
     }
   });
-  it("renders one branded confirmation with privacy and unsubscribe links and retires welcome rendering", () => {
+  it("renders the branded welcome email with survey, ideas, FAQ, privacy and unsubscribe links", () => {
+    const email = renderWaitlistEmail("welcome", {
+      origin: "https://example.com",
+      unsubscribeToken: "unsubscribe",
+      contactEmail: "help@example.com",
+    });
+    expect(email.subject).toBe("Welcome to Odyssey: you're on the list");
+    for (const body of [email.text, email.html]) {
+      expect(body).toContain("among the first to know when Odyssey launches");
+      expect(body).toContain("https://tally.so/r/J19WzR?source=welcome");
+      expect(body).toContain("https://odyssey.soralives.xyz/#activity-ideas");
+      expect(body).toContain("https://odyssey.soralives.xyz/#questions");
+      expect(body).toContain("/privacy");
+      expect(body).toContain("/waitlist/unsubscribe?token=unsubscribe");
+      expect(body).not.toMatch(
+        /Founding Explorer|invite code|Confirm my email/,
+      );
+    }
+    expect(email.html).toContain(
+      'src="https://odyssey.soralives.xyz/brand/open-loop-ink.png"',
+    );
+    expect(email.html).toContain('alt="Odyssey logo"');
+  });
+  it("still renders confirmation emails for already-queued legacy jobs", () => {
     const email = renderWaitlistEmail("confirmation", {
       origin: "https://example.com",
       token: "private",
       unsubscribeToken: "unsubscribe",
     });
     expect(email.subject).toBe("Confirm your place on the Odyssey waitlist");
-    for (const body of [email.text, email.html]) {
-      expect(body).toContain("Confirm my email");
-      expect(body).toContain("https://odyssey.soralives.xyz");
-      expect(body).toContain("/privacy");
-      expect(body).toContain("/waitlist/unsubscribe?token=unsubscribe");
-      expect(body).not.toMatch(/Founding Explorer|invite code|welcome email/);
-    }
-    expect(email.html).toContain(
-      'src="https://odyssey.soralives.xyz/brand/open-loop-ink.png"',
+    expect(email.text).toContain(
+      "https://example.com/waitlist/confirm?token=private",
     );
-    expect(email.html).toContain('alt="Odyssey logo"');
     expect(() =>
-      renderWaitlistEmail("welcome", {
-        origin: "https://example.com",
-        token: "",
-      }),
-    ).toThrow("retired");
+      renderWaitlistEmail("confirmation", { origin: "https://example.com" }),
+    ).toThrow("Confirmation token required");
   });
 });

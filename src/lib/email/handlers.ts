@@ -60,8 +60,14 @@ export async function actionHandler(
       ? getWaitlistActionConfig()
       : getWaitlistRuntimeConfig();
   if (!config) return respond(503);
+  // Native forms on our no-referrer action pages post `Origin: null`. As with
+  // one-click unsubscribe, the secret token (not the origin) authorizes
+  // confirm/unsubscribe; an explicit foreign origin is still rejected.
+  const opaqueTokenForm =
+    kind !== "resend" && request.headers.get("origin") === "null";
   if (
     !oneClick &&
+    !opaqueTokenForm &&
     !isAllowedOrigin(
       request.headers.get("origin"),
       request.headers.get("referer"),

@@ -22,7 +22,7 @@ for (const query of [
       .click();
     await expect(
       page.getByRole("heading", {
-        name: "Check your inbox to confirm your place.",
+        name: "You’re on the list.",
       }),
     ).toBeVisible();
     expect(submitted).toEqual({

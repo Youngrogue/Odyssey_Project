@@ -28,7 +28,7 @@ export default async function Unsubscribe({
             ? "Too many attempts. Please try again later."
             : params.error === "unavailable"
               ? "This action is temporarily unavailable. Please try again later."
-              : "We could not process that request. Please use your email link or request a new one."}
+              : "We could not process that request. Please use the link in your email, or join again on the homepage."}
         </p>
       )}
       {params.resent && (

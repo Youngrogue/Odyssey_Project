@@ -15,6 +15,9 @@ export async function daily(db: Queryable, key: string, limit: number) {
   );
   return Number(r.rows[0]?.attempts) <= limit;
 }
+// Single opt-in: submitting the form (with its consent note) joins the list.
+// Members get one welcome email; a pending row from the retired double opt-in
+// flow upgrades on re-join.
 export async function enroll(
   db: Queryable,
   input: {
@@ -27,21 +30,16 @@ export async function enroll(
 ): Promise<boolean> {
   await lockAddress(db, input.secret, input.email);
   if (await isSuppressed(db, input.secret, input.email)) return false;
-  const confirm = token(),
-    unsub = token();
+  const unsub = token();
   const r = await db.query(
-    `INSERT INTO waitlist_signups(email,notice_version,expires_at,token_hash,token_expires_at,confirmation_hash,confirmation_expires_at,unsubscribe_hash,referral_code,referred_by,suppression_hash)
- VALUES($1,$6,now()+$2::int*interval '1 day',$3,now()+interval '1 day',$4,now()+interval '1 day',$5,$7,$8,$9)
- ON CONFLICT(email) DO UPDATE SET state='pending',generation=waitlist_signups.generation+1,confirmed_at=NULL,collected_at=now(),expires_at=EXCLUDED.expires_at,token_hash=EXCLUDED.token_hash,token_expires_at=EXCLUDED.token_expires_at,confirmation_hash=EXCLUDED.confirmation_hash,confirmation_expires_at=EXCLUDED.confirmation_expires_at,unsubscribe_hash=EXCLUDED.unsubscribe_hash,city=NULL,interests='{}'::text[],notice_version=EXCLUDED.notice_version,invite_token_hash=NULL,suppression_hash=EXCLUDED.suppression_hash
- WHERE waitlist_signups.expires_at<=now() AND waitlist_signups.state IN ('pending','confirmed','expired') RETURNING id,generation`,
+    `INSERT INTO waitlist_signups(email,notice_version,expires_at,token_hash,token_expires_at,unsubscribe_hash,referral_code,referred_by,suppression_hash,state,confirmed_at)
+ VALUES($1,$5,now()+$2::int*interval '1 day',$3,now()+interval '1 day',$4,$6,$7,$8,'confirmed',now())
+ ON CONFLICT(email) DO UPDATE SET state='confirmed',generation=waitlist_signups.generation+1,confirmed_at=now(),collected_at=now(),expires_at=EXCLUDED.expires_at,token_hash=EXCLUDED.token_hash,token_expires_at=EXCLUDED.token_expires_at,confirmation_hash=NULL,confirmation_expires_at=NULL,unsubscribe_hash=EXCLUDED.unsubscribe_hash,city=NULL,interests='{}'::text[],notice_version=EXCLUDED.notice_version,invite_token_hash=NULL,suppression_hash=EXCLUDED.suppression_hash
+ WHERE (waitlist_signups.expires_at<=now() AND waitlist_signups.state IN ('pending','confirmed','expired')) OR waitlist_signups.state='pending' RETURNING id,generation`,
     [
       input.email,
-      Math.min(
-        input.retentionDays,
-        Number(process.env.WAITLIST_PENDING_RETENTION_DAYS) || 7,
-      ),
+      input.retentionDays,
       hash(input.secret, "capability", cap),
-      digest(input.secret, "confirm", confirm),
       digest(input.secret, "unsubscribe", unsub),
       waitlistNotice.version,
       null,
@@ -51,25 +49,19 @@ export async function enroll(
   );
   return Boolean(
     r.rows[0] &&
-      (await queueConfirmation(
-        db,
-        r.rows[0],
-        input.email,
-        input.secret,
-        confirm,
-        unsub,
-      )),
+      (await queueWelcome(db, r.rows[0], input.email, input.secret, unsub)),
   );
 }
-async function queueConfirmation(
+// Only this marker is sendable: legacy referral-era welcome jobs never are.
+export const WELCOME_KEY_SUFFIX = ":welcome-v2";
+async function queueWelcome(
   db: Queryable,
   row: Record<string, unknown>,
   email: string,
   secret: string,
-  confirm: string,
   unsub: string,
 ) {
-  if (!(await daily(db, digest(secret, "confirmation-day", email), 3)))
+  if (!(await daily(db, digest(secret, "welcome-day", email), 3)))
     return false;
   await armMailRecovery(db);
   await db.query(
@@ -81,24 +73,21 @@ async function queueConfirmation(
     [row.id],
   );
   await db.query(
-    `UPDATE waitlist_signups SET last_confirmation_at=now(),confirmation_hash=$2,confirmation_expires_at=now()+interval '1 day',unsubscribe_hash=$3 WHERE id=$1`,
-    [
-      row.id,
-      digest(secret, "confirm", confirm),
-      digest(secret, "unsubscribe", unsub),
-    ],
+    `UPDATE waitlist_signups SET last_confirmation_at=now(),unsubscribe_hash=$2 WHERE id=$1`,
+    [row.id, digest(secret, "unsubscribe", unsub)],
   );
   await db.query(
-    `INSERT INTO waitlist_outbox(signup_id,generation,kind,semantic_key,sealed_tokens) VALUES($1,$2,'confirmation',$3,$4) ON CONFLICT(semantic_key) DO NOTHING`,
+    `INSERT INTO waitlist_outbox(signup_id,generation,kind,semantic_key,sealed_tokens) VALUES($1,$2,'welcome',$3,$4) ON CONFLICT(semantic_key) DO NOTHING`,
     [
       row.id,
       row.generation,
-      `${row.id}:${row.generation}:confirm:${digest(secret, "confirm", confirm)}`,
-      seal({ token: confirm, unsubscribeToken: unsub }, secret),
+      `${row.id}:${row.generation}${WELCOME_KEY_SUFFIX}`,
+      seal({ unsubscribeToken: unsub }, secret),
     ],
   );
   return true;
 }
+// Confirmation links are retired; a resend request is rate-limited and inert.
 export async function resend(
   db: Queryable,
   input: { email: string; secret: string; ip: string },
@@ -107,29 +96,8 @@ export async function resend(
   try {
     const a = await charge(db, hash(input.secret, "rate-ip", input.ip), 20),
       b = await charge(db, hash(input.secret, "rate-email", input.email), 5);
-    if (!a || !b) {
-      await db.query("COMMIT");
-      throw new WaitlistRateLimitError();
-    }
-    await lockAddress(db, input.secret, input.email);
-    if (await isSuppressed(db, input.secret, input.email)) {
-      await db.query("COMMIT");
-      return;
-    }
-    const r = await db.query(
-      `SELECT id,generation FROM waitlist_signups WHERE email=$1 AND state='pending' AND expires_at>now() AND (last_confirmation_at IS NULL OR last_confirmation_at<now()-interval '60 seconds') FOR UPDATE`,
-      [input.email],
-    );
-    if (r.rows[0])
-      await queueConfirmation(
-        db,
-        r.rows[0],
-        input.email,
-        input.secret,
-        token(),
-        token(),
-      );
     await db.query("COMMIT");
+    if (!a || !b) throw new WaitlistRateLimitError();
   } catch (e) {
     if (!(e instanceof WaitlistRateLimitError)) await db.query("ROLLBACK");
     throw e;

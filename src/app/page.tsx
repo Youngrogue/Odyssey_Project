@@ -47,7 +47,7 @@ const questions = [
   ],
   [
     "What will you email me?",
-    "One confirmation email, followed by a launch notification when Odyssey is ready. No app account, broader newsletter or partner mailing list is created. You can unsubscribe.",
+    "A welcome email when you join, then a launch email when Odyssey is ready. No app account, broader newsletter or partner mailing list is created. You can unsubscribe anytime.",
   ],
 ];
 export default function HomePage() {

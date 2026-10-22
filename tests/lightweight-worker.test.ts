@@ -50,7 +50,7 @@ describe("lightweight deployed waitlist boundary", () => {
     const html = await res.text();
     expect(html).not.toContain("<script>");
     expect(html).not.toContain('name="token"');
-    expect(html).toContain("Request a new link");
+    expect(html).toContain("join again on the homepage");
   });
   it("never shows success alongside an error from conflicting query flags", async () => {
     for (const path of ["/waitlist/confirm", "/waitlist/unsubscribe"]) {
