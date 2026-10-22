@@ -1,5 +1,4 @@
 import { Client as PostgresClient } from "pg";
-import { Client as NeonClient } from "@neondatabase/serverless";
 import { databaseConnectionString } from "./connection";
 import { isNeonDatabaseUrl } from "./database-url.mjs";
 import type { Queryable } from "./store";
@@ -12,13 +11,13 @@ export async function connectWaitlist(): Promise<
   let client: PostgresClient | NeonClient | undefined;
   try {
     const hostname = new URL(connectionString).hostname;
-    const Client = isNeonDatabaseUrl(connectionString)
-      ? NeonClient
-      : ["localhost", "127.0.0.1", "[::1]"].includes(hostname)
+    const Client =
+      isNeonDatabaseUrl(connectionString) ||
+      ["localhost", "127.0.0.1", "[::1]"].includes(hostname)
         ? PostgresClient
         : undefined;
     if (!Client) throw new Error("Database unavailable");
-    // Neon uses secure WebSockets; local PostgreSQL tests retain ordinary TCP.
+    // EXPERIMENT: Neon over TLS/TCP (Workers sockets) instead of WebSockets.
     client = new Client({ connectionString, connectionTimeoutMillis: 5000 });
     await client.connect();
   } catch {
