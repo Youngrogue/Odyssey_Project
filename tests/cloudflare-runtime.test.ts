@@ -66,7 +66,7 @@ describe("Workers database transport", () => {
     const one = await connectWaitlist();
     const two = await connectWaitlist();
     expect(one).not.toBe(two);
-    expect(clients.instances.every((c) => c.transport === "websocket")).toBe(
+    expect(clients.instances.every((c) => c.transport === "tcp")).toBe(
       true,
     );
     await one.release();
