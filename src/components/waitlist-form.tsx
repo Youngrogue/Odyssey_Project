@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Icon } from "./icons";
+import { brand } from "@/lib/brand";
 
 export function WaitlistForm() {
   const [availability, setAvailability] = useState<
@@ -118,6 +119,17 @@ export function WaitlistForm() {
         <p>
           Not there? Check spam or promotions, or{" "}
           <a href="/waitlist/confirm">request a new link</a>.
+        </p>
+        <p>
+          While you wait, tell us what you&rsquo;d love to do in our{" "}
+          <a
+            href={`${brand.surveyUrl}?source=signup`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            3-minute survey
+          </a>
+          .
         </p>
         <a className="text-link" href="#activity-ideas">
           Browse ideas for my list <Icon name="arrow" />

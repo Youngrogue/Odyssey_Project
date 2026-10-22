@@ -309,6 +309,15 @@ export default function HomePage() {
             <Icon name="arrowUp" />
           </a>
           <p>At home. Around the corner. Beyond the usual.</p>
+          <a
+            className="text-link"
+            href={`${brand.surveyUrl}?source=site`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Help shape Odyssey: take the 3-minute survey
+            <Icon name="arrow" />
+          </a>
           <Icon name="spark" className="invitation-spark" />
         </section>
       </main>

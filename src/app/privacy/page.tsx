@@ -71,6 +71,12 @@ export default function PrivacyPage() {
           information under their own settings and policies.
         </p>
         <p>
+          Our optional interest survey is a separate, anonymous form hosted by
+          Tally (EU-hosted). It does not ask for your email or other contact
+          details and is not linked to the waitlist. Please do not include
+          personal details in its free-text answers.
+        </p>
+        <p>
           Waitlist details are not displayed on this site, published to the
           editorial Google Sheet or shared with activity communities. We do not
           add advertising trackers or third-party analytics to this page. We
